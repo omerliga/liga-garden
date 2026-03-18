@@ -10,7 +10,7 @@ exports.handler = async (event) => {
 
   let formula = `{Active}=TRUE()`;
   if (client) {
-    formula = `AND({Active}=TRUE(),{Client}="${client}")`;
+    formula = `AND({Active}=TRUE(),FIND("${client}",ARRAYJOIN({Client},",")))`;
   }
 
   const params = new URLSearchParams({
