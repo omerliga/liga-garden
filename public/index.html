@@ -310,7 +310,11 @@ const fmtDate = s => {
   try { return new Date(s).toLocaleDateString('he-IL',{day:'numeric',month:'long',year:'numeric'}); }
   catch(e){ return s; }
 };
-const initials = n => n ? n.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase() : 'L';
+const initials = n => {
+  if (!n) return 'L';
+  const name = Array.isArray(n) ? n[0] : n;
+  return (name||'').trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+};
 
 function tagConfig(type) {
   const t = (type||'').toLowerCase();
