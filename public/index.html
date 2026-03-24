@@ -26,31 +26,49 @@
   /* ── SPLASH ── */
   #splash {
     position:fixed; inset:0; z-index:9999;
-    background:#000000;
+    background:#000;
     display:flex; flex-direction:column;
     align-items:center; justify-content:center;
-    transition:opacity 0.9s ease, transform 0.9s ease;
+    transition:opacity 1s ease, transform 1s ease;
+    overflow:hidden;
   }
-  #splash.out { opacity:0; transform:scale(1.04); pointer-events:none; }
+  #splash.out { opacity:0; transform:scale(1.05); pointer-events:none; }
+  #splash-bg {
+    position:absolute; inset:0;
+    background-size:cover; background-position:center;
+    opacity:0; transition:opacity 1.5s ease;
+  }
+  #splash-bg.loaded { opacity:1; }
+  #splash-overlay {
+    position:absolute; inset:0;
+    background:linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 100%);
+  }
+  .s-logo-wrap {
+    position:relative; z-index:2;
+    display:flex; flex-direction:column; align-items:center;
+    opacity:0; animation:riseIn 1s ease 0.3s forwards;
+  }
   .s-logo {
-    width:220px; height:220px;
-    object-fit:contain;
-    opacity:0; animation:riseIn 1.2s ease 0.2s forwards;
-    filter:drop-shadow(0 0 30px rgba(122,158,126,0.2));
+    width:200px; height:200px; object-fit:contain;
+    animation:spinLogo 5s linear infinite;
+    filter:drop-shadow(0 4px 24px rgba(0,0,0,0.6));
   }
   .s-sub {
-    font-size:10px; letter-spacing:5px; color:var(--sage); text-transform:uppercase;
-    margin-top:4px; opacity:0; animation:riseIn 1s ease 0.8s forwards;
+    font-size:10px; letter-spacing:5px; color:rgba(255,255,255,0.75);
+    text-transform:uppercase; margin-top:8px;
+    position:relative; z-index:2;
+    opacity:0; animation:riseIn 1s ease 0.9s forwards;
   }
   .s-bar {
-    width:48px; height:1px; background:rgba(255,255,255,0.1);
-    margin-top:32px; overflow:hidden; border-radius:1px;
-    opacity:0; animation:riseIn 0.5s ease 1s forwards;
+    width:48px; height:1px; background:rgba(255,255,255,0.15);
+    margin-top:28px; overflow:hidden; border-radius:1px;
+    position:relative; z-index:2;
+    opacity:0; animation:riseIn 0.5s ease 1.1s forwards;
   }
   .s-bar-fill {
     height:100%; width:0;
-    background:linear-gradient(90deg,var(--moss),var(--gold));
-    animation:loadBar 1.8s ease 1.1s forwards;
+    background:linear-gradient(90deg,var(--sage),var(--gold));
+    animation:loadBar 2s ease 1.2s forwards;
   }
 
   /* ── SHELL ── */
@@ -248,17 +266,22 @@
   }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
-  @keyframes riseIn  { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes loadBar { to{width:100%} }
-  @keyframes spin    { to{transform:rotate(360deg)} }
-  @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  @keyframes riseIn   { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes loadBar  { to{width:100%} }
+  @keyframes spin     { to{transform:rotate(360deg)} }
+  @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  @keyframes spinLogo { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 </style>
 </head>
 <body>
 
 <!-- SPLASH -->
 <div id="splash">
-  <img class="s-logo" src="logo_transparent.png" alt="LIGA Garden"/>
+  <div id="splash-bg"></div>
+  <div id="splash-overlay"></div>
+  <div class="s-logo-wrap">
+    <img class="s-logo" src="logo_transparent.png" alt="LIGA Garden"/>
+  </div>
   <div class="s-sub">Garden Experience</div>
   <div class="s-bar"><div class="s-bar-fill"></div></div>
 </div>
@@ -330,7 +353,7 @@ async function fetchFeed() {
   const resp = await fetch(`${API}?${params}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   const data = await resp.json();
-  return data.records || [];
+  return data;
 }
 
 // ── build card ──
@@ -442,11 +465,24 @@ const showEmpty   = () => { feed().innerHTML=`<div class="state"><svg class="sta
 
 // ── init ──
 async function init() {
-  setTimeout(() => document.getElementById('splash').classList.add('out'), 2600);
   if (CLIENT) document.getElementById('top-client').textContent = CLIENT;
   showLoading();
   try {
-    const recs = await fetchFeed();
+    const data = await fetchFeed();
+    const recs = data.records || [];
+
+    // הצג תמונת גינה ב-Splash
+    if (data.profilePhoto) {
+      const bg = document.getElementById('splash-bg');
+      bg.style.backgroundImage = `url('${data.profilePhoto}')`;
+      const img = new Image();
+      img.onload = () => bg.classList.add('loaded');
+      img.src = data.profilePhoto;
+    }
+
+    // סגור Splash אחרי 3 שניות
+    setTimeout(() => document.getElementById('splash').classList.add('out'), 3000);
+
     if (!recs.length) { showEmpty(); return; }
     feed().innerHTML = '';
     recs.forEach((r,i) => feed().appendChild(buildCard(r,i)));
@@ -455,6 +491,7 @@ async function init() {
     setTimeout(() => document.querySelector('.card')?.classList.add('in-view'), 150);
   } catch(e) {
     console.error(e);
+    setTimeout(() => document.getElementById('splash').classList.add('out'), 2600);
     showError();
   }
 }
