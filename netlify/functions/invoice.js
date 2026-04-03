@@ -4,7 +4,7 @@
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const GREEN_INVOICE_API_KEY = process.env.GREEN_INVOICE_API_KEY;
-const GREEN_INVOICE_SECRET = process.env.GREEN_INVOICE_SECRET;
+const GREEN_INVOICE_SECRET = 'vA,!SK5}qD|[^$u.?]e*Dc>#6X,?o1T_Y';
 
 const ITEMS = [
   { name: 'אוסמוקוט', price: 55 },
