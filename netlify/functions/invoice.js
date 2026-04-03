@@ -42,7 +42,7 @@ const ITEMS = [
   { name: 'ריסוס עשבים', description: 'ריסוס נגד עשבים', price: 24, id: '0cb8f86c-1dcf-4390-8150-10f3537eee6f' },
   { name: 'תערובת שתילה 50', description: 'תערובת שתילה 50 ליטר', price: 45, id: 'e41c3060-7b8b-43eb-981c-7d9956ca8581' },
   { name: 'תערובת שתילה 80', description: '80 ליטר תערובת', price: 58, id: '2855f99d-ab7c-4acb-bffe-bb9b048dff51' },
-  { name: 'סוללה', description: 'סוללה 9V', price: 20, id: null } // יש להוסיף ב-Green Invoice ולעדכן ID
+  { name: 'סוללה', description: 'סוללה 9V', price: 20, id: null }
 ];
 
 // שלב 1: קבל טוקן מחשבונית ירוקה
@@ -56,7 +56,7 @@ async function getGreenInvoiceToken() {
     })
   });
   const data = await resp.json();
-  if (!data.token) throw new Error('Failed to get Green Invoice token');
+  if (!data.token) throw new Error('Failed to get Green Invoice token: ' + JSON.stringify(data));
   return data.token;
 }
 
@@ -67,6 +67,7 @@ async function getClientsFromAirtable() {
     { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
   );
   const data = await resp.json();
+  if (!data.records) throw new Error('Airtable error: ' + JSON.stringify(data));
   return data.records.map(r => ({
     name: r.fields['Client Name'],
     price: r.fields['TreatmentPrice'],
@@ -98,15 +99,15 @@ ${itemList}
 3. זהה תוספות וכמויות (לדוגמה "3 אוסמוקוט" = כמות 3)
 4. אם לא בטוח בזיהוי — ציין זאת
 
-החזר JSON בלבד בפורמט הזה:
+החזר JSON בלבד בפורמט הזה, ללא טקסט נוסף:
 {
   "clientName": "שם הלקוח המדויק מהרשימה",
-  "confident": true/false,
-  "treatmentDescription": "תיאור העבודה שנעשתה (לפירוט בחשבון)",
+  "confident": true,
+  "treatmentDescription": "תיאור העבודה שנעשתה",
   "items": [
     { "name": "שם הפריט מהרשימה", "quantity": 1 }
   ],
-  "notes": "הערות אם יש"
+  "notes": ""
 }`;
 
   const resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -117,20 +118,31 @@ ${itemList}
       'anthropic-version': '2023-06-01'
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 1000,
       messages: [{ role: 'user', content: prompt }]
     })
   });
 
   const data = await resp.json();
+
+  // הגנה על קריסה אם התשובה לא תקינה
+  if (!data.content || !data.content[0] || !data.content[0].text) {
+    throw new Error('Claude API error: ' + JSON.stringify(data));
+  }
+
   const text = data.content[0].text;
   const clean = text.replace(/```json|```/g, '').trim();
-  return JSON.parse(clean);
+
+  try {
+    return JSON.parse(clean);
+  } catch (e) {
+    throw new Error('Failed to parse Claude response: ' + text);
+  }
 }
 
 // שלב 4: מצא לקוח ב-Green Invoice לפי שם
-async function findClientInGreenInvoice(token, clientName, clientPhone) {
+async function findClientInGreenInvoice(token, clientName) {
   const resp = await fetch(
     `https://api.greeninvoice.co.il/api/v1/clients?search=${encodeURIComponent(clientName)}`,
     { headers: { Authorization: `Bearer ${token}` } }
@@ -143,7 +155,7 @@ async function findClientInGreenInvoice(token, clientName, clientPhone) {
 }
 
 // שלב 5: צור חשבון עסקה בחשבונית ירוקה
-async function createInvoice(token, client, parsed, clients) {
+async function createInvoice(token, parsed, clients) {
   const clientData = clients.find(c => c.name === parsed.clientName);
   if (!clientData) throw new Error(`לקוח לא נמצא: ${parsed.clientName}`);
 
@@ -159,7 +171,7 @@ async function createInvoice(token, client, parsed, clients) {
     description: `טיפול ${today.toLocaleDateString('he-IL')} - ${parsed.treatmentDescription}`,
     quantity: 1,
     price: clientData.price,
-    vatType: 0 // לפני מע"מ
+    vatType: 0
   });
 
   // תוספות
@@ -179,10 +191,10 @@ async function createInvoice(token, client, parsed, clients) {
   }
 
   // מצא ID לקוח ב-Green Invoice
-  const greenClientId = await findClientInGreenInvoice(token, parsed.clientName, clientData.phone);
+  const greenClientId = await findClientInGreenInvoice(token, parsed.clientName);
 
   const invoiceBody = {
-    type: 300, // חשבון עסקה
+    type: 300,
     lang: 'he',
     currency: 'ILS',
     vatType: 0,
@@ -246,9 +258,9 @@ exports.handler = async (event) => {
     const token = await getGreenInvoiceToken();
 
     // 4. צור חשבון עסקה
-    const invoice = await createInvoice(token, null, parsed, clients);
+    const invoice = await createInvoice(token, parsed, clients);
 
-    // 5. בנה סיכום להחזרה
+    // 5. בנה סיכום
     const clientData = clients.find(c => c.name === parsed.clientName);
     const total = clientData.price + parsed.items.reduce((sum, item) => {
       const found = ITEMS.find(i => i.name.includes(item.name) || item.name.includes(i.name));
