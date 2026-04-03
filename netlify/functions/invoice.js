@@ -47,6 +47,8 @@ const ITEMS = [
 
 // שלב 1: קבל טוקן מחשבונית ירוקה
 async function getGreenInvoiceToken() {
+  console.log('API_KEY:', GREEN_INVOICE_API_KEY ? GREEN_INVOICE_API_KEY.substring(0, 8) + '...' : 'MISSING');
+  console.log('SECRET length:', GREEN_INVOICE_SECRET ? GREEN_INVOICE_SECRET.length : 'MISSING');
   const resp = await fetch('https://api.morning.co/idp/v1/oauth/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
