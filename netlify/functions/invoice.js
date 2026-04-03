@@ -47,17 +47,18 @@ const ITEMS = [
 
 // שלב 1: קבל טוקן מחשבונית ירוקה
 async function getGreenInvoiceToken() {
-  const resp = await fetch('https://api.greeninvoice.co.il/api/v1/account/token', {
+  const resp = await fetch('https://api.morning.co/idp/v1/oauth/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      id: GREEN_INVOICE_API_KEY,
-      secret: GREEN_INVOICE_SECRET
+      grant_type: 'client_credentials',
+      client_id: GREEN_INVOICE_API_KEY,
+      client_secret: GREEN_INVOICE_SECRET
     })
   });
   const data = await resp.json();
-  if (!data.token) throw new Error('Failed to get Green Invoice token: ' + JSON.stringify(data));
-  return data.token;
+  if (!data.accessToken) throw new Error('Failed to get Green Invoice token: ' + JSON.stringify(data));
+  return data.accessToken;
 }
 
 // שלב 2: קבל לקוחות מ-Airtable
