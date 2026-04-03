@@ -110,7 +110,7 @@ async function getClientsFromAirtable() {
 
 async function findClientInGreenInvoice(token, clientName) {
   const resp = await fetch(
-    `https://api.morning.co/api/v1/clients?search=${encodeURIComponent(clientName)}`,
+    `https://api.greeninvoice.co.il/api/v1/clients?search=${encodeURIComponent(clientName)}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   const data = await resp.json();
@@ -162,7 +162,7 @@ async function createInvoice(token, client, foundItems, hasTreatment) {
     remarks: ''
   };
 
-  const resp = await fetch('https://api.morning.co/api/v1/documents', {
+  const resp = await fetch('https://api.greeninvoice.co.il/api/v1/documents', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
