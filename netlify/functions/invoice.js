@@ -163,6 +163,9 @@ exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body);
     const message = body.message;
+    console.log('Message received:', message);
+console.log('Clients count:', clients.length);
+console.log('Found client:', foundClient ? foundClient.name : 'NOT FOUND');
 
     if (!message) {
       return { statusCode: 400, body: JSON.stringify({ error: 'חסרה הודעה' }) };
