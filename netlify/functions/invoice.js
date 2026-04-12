@@ -164,8 +164,6 @@ exports.handler = async (event) => {
     const body = JSON.parse(event.body);
     const message = body.message;
     console.log('Message received:', message);
-console.log('Clients count:', clients.length);
-console.log('Found client:', foundClient ? foundClient.name : 'NOT FOUND');
 
     if (!message) {
       return { statusCode: 400, body: JSON.stringify({ error: 'חסרה הודעה' }) };
@@ -173,6 +171,8 @@ console.log('Found client:', foundClient ? foundClient.name : 'NOT FOUND');
 
     const clients = await getClientsFromAirtable();
     const { foundClient, foundItems, hasTreatment } = parseMessage(message, clients);
+    console.log('Clients count:', clients.length);
+    console.log('Found client:', foundClient ? foundClient.name : 'NOT FOUND');
 
     if (!foundClient) {
       return {
