@@ -1,7 +1,6 @@
 // liga-garden/netlify/functions/invoice.js
-// מקבל הודעת וואצאפ, מפרק אותה, ויוצר חשבון עסקה בחשבונית ירוקה
 
-const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'appc8NrhAXkthRmVj';
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const GREEN_INVOICE_API_KEY = '96fdbd5d-2d97-4fc6-877e-060e67313d0c';
 const GREEN_INVOICE_SECRET = 'PVcaS>#FENIj%5s5-4<l"E7Ts"CZPSD9';
@@ -43,12 +42,10 @@ const ITEMS = [
   { name: 'סוללה', price: 20 }
 ];
 
-// פרסינג פשוט של ההודעה ללא Claude
 function parseMessage(message, clients) {
-  // מצא לקוח
   let foundClient = null;
   for (const client of clients) {
-    const nameParts = client.name.split(' ');
+    const nameParts = (client.name || '').split(' ');
     for (const part of nameParts) {
       if (part.length > 1 && message.includes(part)) {
         foundClient = client;
@@ -58,11 +55,9 @@ function parseMessage(message, clients) {
     if (foundClient) break;
   }
 
-  // מצא פריטים וכמויות
   const foundItems = [];
   for (const item of ITEMS) {
     if (message.includes(item.name)) {
-      // חפש כמות לפני שם הפריט (לדוגמה "2 אוסמוקוט")
       const regex = new RegExp(`(\\d+)\\s*${item.name}`);
       const match = message.match(regex);
       const quantity = match ? parseInt(match[1]) : 1;
@@ -70,14 +65,12 @@ function parseMessage(message, clients) {
     }
   }
 
-  // האם יש "טיפול" בהודעה?
   const hasTreatment = message.includes('טיפול');
-
   return { foundClient, foundItems, hasTreatment };
 }
 
 async function getGreenInvoiceToken() {
-  console.log('Getting token with API_KEY:', GREEN_INVOICE_API_KEY ? GREEN_INVOICE_API_KEY.substring(0, 8) + '...' : 'MISSING');
+  console.log('Getting token, API_KEY:', GREEN_INVOICE_API_KEY.substring(0, 8));
   const resp = await fetch('https://api.morning.co/idp/v1/oauth/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -88,8 +81,8 @@ async function getGreenInvoiceToken() {
     })
   });
   const data = await resp.json();
-  console.log('Token response:', JSON.stringify(data).substring(0, 100));
-  if (!data.accessToken) throw new Error('Failed to get Green Invoice token: ' + JSON.stringify(data));
+  console.log('Token response keys:', Object.keys(data).join(','));
+  if (!data.accessToken) throw new Error('Failed to get token: ' + JSON.stringify(data));
   return data.accessToken;
 }
 
@@ -106,16 +99,6 @@ async function getClientsFromAirtable() {
     email: r.fields['Email Address'] || '',
     phone: r.fields['Phone Number'] || ''
   }));
-}
-
-async function findClientInGreenInvoice(token, clientName) {
-  const resp = await fetch(
-    `https://api.morning.co/api/v1/clients?search=${encodeURIComponent(clientName)}`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  const data = await resp.json();
-  if (data.items && data.items.length > 0) return data.items[0].id;
-  return null;
 }
 
 async function createInvoice(token, client, foundItems, hasTreatment) {
@@ -144,8 +127,6 @@ async function createInvoice(token, client, foundItems, hasTreatment) {
     });
   }
 
-  const greenClientId = await findClientInGreenInvoice(token, client.name);
-
   const invoiceBody = {
     type: 300,
     lang: 'he',
@@ -153,14 +134,12 @@ async function createInvoice(token, client, foundItems, hasTreatment) {
     vatType: 0,
     date: parseInt(dateStr),
     dueDate: parseInt(dateStr),
-    client: greenClientId ? { id: greenClientId } : {
-      name: client.name,
-      emails: client.email ? [client.email] : [],
-      phone: client.phone || ''
-    },
+    client: { name: client.name, emails: client.email ? [client.email] : [], phone: client.phone || '' },
     income: lineItems,
     remarks: ''
   };
+
+  console.log('Creating invoice:', JSON.stringify(invoiceBody).substring(0, 200));
 
   const resp = await fetch('https://api.morning.co/api/v1/documents', {
     method: 'POST',
@@ -171,7 +150,9 @@ async function createInvoice(token, client, foundItems, hasTreatment) {
     body: JSON.stringify(invoiceBody)
   });
 
-  return await resp.json();
+  const data = await resp.json();
+  console.log('Invoice response:', JSON.stringify(data).substring(0, 200));
+  return data;
 }
 
 exports.handler = async (event) => {
@@ -193,10 +174,7 @@ exports.handler = async (event) => {
     if (!foundClient) {
       return {
         statusCode: 200,
-        body: JSON.stringify({
-          status: 'error',
-          message: `⚠️ לא זיהיתי לקוח בהודעה: "${message}"`
-        })
+        body: JSON.stringify({ status: 'error', message: `⚠️ לא זיהיתי לקוח בהודעה: "${message}"` })
       };
     }
 
@@ -222,7 +200,7 @@ exports.handler = async (event) => {
     };
 
   } catch (err) {
-    console.error(err);
+    console.error('Handler error:', err.message);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: err.message })
