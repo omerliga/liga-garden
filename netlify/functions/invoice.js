@@ -2,8 +2,8 @@
 
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'appc8NrhAXkthRmVj';
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
-const GREEN_INVOICE_API_KEY = '96fdbd5d-2d97-4fc6-877e-060e67313d0c';
-const GREEN_INVOICE_SECRET = 'PVcaS>#FENIj%5s5-4<l"E7Ts"CZPSD9';
+const GREEN_INVOICE_API_KEY = process.env.GREEN_INVOICE_API_KEY;
+const GREEN_INVOICE_SECRET = process.env.GREEN_INVOICE_SECRET;
 
 const ITEMS = [
   { name: 'אוסמוקוט', price: 55 },
