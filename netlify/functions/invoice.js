@@ -136,7 +136,8 @@ async function createInvoice(token, client, foundItems, hasTreatment) {
     dueDate: parseInt(dateStr),
     client: { name: client.name, emails: client.email ? [client.email] : [], phone: client.phone || '' },
     income: lineItems,
-    remarks: ''
+    remarks: '',
+    draft: true
   };
 
   console.log('Creating invoice:', JSON.stringify(invoiceBody).substring(0, 200));
@@ -151,7 +152,8 @@ async function createInvoice(token, client, foundItems, hasTreatment) {
   });
 
   const data = await resp.json();
-  console.log('Invoice response:', JSON.stringify(data).substring(0, 200));
+  console.log('Invoice response status:', resp.status);
+  console.log('Invoice response full:', JSON.stringify(data));
   return data;
 }
 
