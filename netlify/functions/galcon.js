@@ -30,7 +30,9 @@ async function getUnitList(token, projectId) {
     headers: { Authorization: `Bearer ${token}` }
   });
   const data = await resp.json();
-  console.log(`UnitList for project ${projectId}:`, JSON.stringify(data));
+  console.log(`UnitList raw for project ${projectId}:`, JSON.stringify(data));
+  console.log(`UnitList Body for project ${projectId}:`, JSON.stringify(data.Body));
+  console.log(`UnitList Body type for project ${projectId}:`, typeof data.Body, Array.isArray(data.Body));
   return data.Body || [];
 }
 
