@@ -37,13 +37,13 @@ async function getClientsWithSerialNumbers() {
     .filter(c => c.serialNumber);
 }
 
-async function getControllerData(token, serialNumber) {
-  const resp = await fetch(`${GALCON_BASE_URL}/api/controllers/${serialNumber}`, {
+async function getAllControllers(token) {
+  const resp = await fetch(`${GALCON_BASE_URL}/api/Controllers`, {
     headers: { Authorization: `Bearer ${token}` }
   });
-  console.log(`Controller ${serialNumber} status:`, resp.status);
+  console.log('Controllers status:', resp.status);
   const data = await resp.json();
-  console.log(`Controller ${serialNumber} response:`, JSON.stringify(data));
+  console.log('Controllers response:', JSON.stringify(data));
   return data;
 }
 
@@ -61,16 +61,13 @@ exports.handler = async (event) => {
 
     console.log('Clients with serial numbers:', clients.length);
 
-    const results = await Promise.all(
-      clients.map(async (client) => {
-        try {
-          const data = await getControllerData(token, client.serialNumber);
-          return { client: client.name, serialNumber: client.serialNumber, data };
-        } catch (err) {
-          return { client: client.name, serialNumber: client.serialNumber, error: err.message };
-        }
-      })
-    );
+    const controllersData = await getAllControllers(token);
+
+    const results = clients.map(client => ({
+      client: client.name,
+      serialNumber: client.serialNumber,
+      data: controllersData
+    }));
 
     return {
       statusCode: 200,
