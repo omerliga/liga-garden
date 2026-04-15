@@ -12,7 +12,7 @@ async function getGalconToken() {
   const resp = await fetch(`${GALCON_BASE_URL}/api/Auth/Login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userEmail: GALCON_EMAIL, password: GALCON_PASSWORD })
+    body: JSON.stringify({ username: GALCON_EMAIL, password: GALCON_PASSWORD })
   });
   console.log('Galcon login status:', resp.status);
   const data = await resp.json();
