@@ -31,7 +31,7 @@ async function getUnitList(token, projectId) {
   });
   const data = await resp.json();
   console.log(`UnitList for project ${projectId}:`, JSON.stringify(data));
-  return data;
+  return data.Body || [];
 }
 
 exports.handler = async (event) => {
@@ -49,8 +49,7 @@ exports.handler = async (event) => {
     const results = await Promise.all(
       projects.map(async (project) => {
         const projectId = project.ProjectId || project.projectId || project.id;
-        const unitData = await getUnitList(token, projectId);
-        const units = (unitData && unitData.Body) || [];
+        const units = await getUnitList(token, projectId);
         return { project, units };
       })
     );
