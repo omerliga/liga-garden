@@ -46,11 +46,12 @@ exports.handler = async (event) => {
     const token = await getToken();
 
     const projectsData = await getUserProjects(token);
-    const projects = (projectsData && projectsData.Body) || projectsData || [];
+    const projects = (projectsData && projectsData.Body) || [];
+    console.log('Projects count:', projects.length, 'first:', JSON.stringify(projects[0]));
 
     const results = await Promise.all(
       projects.map(async (project) => {
-        const projectId = project.ProjectId || project.projectId || project.id;
+        const projectId = project.ProjectID;
         const units = await getUnitList(token, projectId);
         return { project, units };
       })
