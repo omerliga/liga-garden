@@ -9,7 +9,7 @@ const GALCON_BASE_URL  = 'https://gsi.galcon-smart.com';
 
 async function getGalconToken() {
   console.log('Logging in to Galcon as:', GALCON_EMAIL);
-  const resp = await fetch(`${GALCON_BASE_URL}/api/v1/users/login`, {
+  const resp = await fetch(`${GALCON_BASE_URL}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: GALCON_EMAIL, password: GALCON_PASSWORD })
@@ -37,7 +37,7 @@ async function getClientsWithSerialNumbers() {
 }
 
 async function getControllerData(token, serialNumber) {
-  const resp = await fetch(`${GALCON_BASE_URL}/api/v1/controllers/${serialNumber}`, {
+  const resp = await fetch(`${GALCON_BASE_URL}/api/controllers/${serialNumber}`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   console.log(`Controller ${serialNumber} status:`, resp.status);
