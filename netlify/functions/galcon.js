@@ -11,8 +11,8 @@ async function getGalconToken() {
   console.log('Logging in to Galcon as:', GALCON_EMAIL);
   const resp = await fetch(`${GALCON_BASE_URL}/api/auth/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userEmail: GALCON_EMAIL, password: GALCON_PASSWORD })
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ userEmail: GALCON_EMAIL, password: GALCON_PASSWORD }).toString()
   });
   console.log('Galcon login status:', resp.status);
   const data = await resp.json();
