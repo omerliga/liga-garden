@@ -1,6 +1,6 @@
 // liga-garden/netlify/functions/invoice.js
 
-const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'appc8NrhAXkthRmVj';
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const GREEN_INVOICE_API_KEY = process.env.GREEN_INVOICE_API_KEY;
 const GREEN_INVOICE_SECRET = process.env.GREEN_INVOICE_SECRET;

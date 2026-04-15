@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>השקיה — LIGA Garden</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Heebo:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep:  #1a2e1c;
+    --deep2: #0f1c10;
+    --moss:  #3d5c40;
+    --sage:  #7a9e7e;
+    --gold:  #c9a84c;
+    --cream: #f5f0e8;
+    --muted: rgba(255,255,255,0.45);
+    --card-bg: rgba(255,255,255,0.04);
+    --border:  rgba(255,255,255,0.08);
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html, body {
+    min-height:100%; width:100%;
+    background:var(--deep2);
+    font-family:'Heebo', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    color:var(--cream);
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    position:sticky; top:0; z-index:100;
+    padding:16px 20px 14px;
+    background:linear-gradient(to bottom, rgba(10,18,10,0.97) 80%, transparent);
+    display:flex; align-items:center; gap:14px;
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+  }
+  .back-btn {
+    width:36px; height:36px; border-radius:50%;
+    background:rgba(255,255,255,0.07); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; text-decoration:none; flex-shrink:0;
+    transition:background 0.2s;
+  }
+  .back-btn:hover { background:rgba(255,255,255,0.14); }
+  .back-btn svg { width:16px; height:16px; stroke:var(--cream); fill:none; stroke-width:2; }
+  .topbar-title {
+    font-family:'Cormorant Garamond', serif;
+    font-size:20px; font-weight:400; letter-spacing:3px; color:var(--cream);
+  }
+  .topbar-sub { font-size:10px; color:var(--gold); letter-spacing:2px; text-transform:uppercase; }
+
+  /* ── MAIN SCROLL ── */
+  .page { max-width:480px; margin:0 auto; padding:20px 16px 48px; }
+
+  /* ── LOADING / ERROR ── */
+  .center-state {
+    display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:14px; padding:80px 20px; text-align:center;
+  }
+  .spinner {
+    width:36px; height:36px;
+    border:1.5px solid rgba(122,158,126,0.2);
+    border-top-color:var(--sage);
+    border-radius:50%; animation:spin 1s linear infinite;
+  }
+  .state-text { font-size:13px; color:var(--muted); letter-spacing:0.5px; }
+  .error-icon { font-size:32px; }
+
+  /* ── UNIT HEADER ── */
+  .unit-header { margin-bottom:20px; }
+  .unit-name {
+    font-family:'Cormorant Garamond', serif;
+    font-size:32px; font-weight:400; letter-spacing:1px; line-height:1.1;
+    margin-bottom:8px;
+  }
+  .status-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .status-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:5px 12px; border-radius:20px;
+    font-size:11px; font-weight:500; letter-spacing:1px;
+  }
+  .status-dot {
+    width:7px; height:7px; border-radius:50%; flex-shrink:0;
+  }
+  .status-active   { background:rgba(122,158,126,0.18); color:#9ecfa0; border:1px solid rgba(122,158,126,0.3); }
+  .status-active   .status-dot { background:#6dcc72; box-shadow:0 0 6px #6dcc72; animation:pulse 2s infinite; }
+  .status-inactive { background:rgba(255,255,255,0.06); color:var(--muted); border:1px solid var(--border); }
+  .status-inactive .status-dot { background:rgba(255,255,255,0.3); }
+  .status-alarm    { background:rgba(220,60,60,0.15); color:#f08080; border:1px solid rgba(220,60,60,0.3); }
+  .status-alarm    .status-dot { background:#f05050; box-shadow:0 0 6px #f05050; animation:pulse 1s infinite; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom:18px; }
+  .section-label {
+    font-size:9px; font-weight:600; letter-spacing:2.5px;
+    text-transform:uppercase; color:var(--gold);
+    margin-bottom:10px; padding-right:2px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px 18px;
+    margin-bottom:10px;
+  }
+
+  /* ── WATER STATS ── */
+  .stats-grid {
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  }
+  .stat-card {
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px 14px;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .stat-label { font-size:10px; color:var(--muted); letter-spacing:1px; }
+  .stat-value {
+    font-family:'Cormorant Garamond', serif;
+    font-size:28px; font-weight:400; color:var(--cream); line-height:1;
+  }
+  .stat-unit { font-size:11px; color:var(--sage); margin-top:2px; }
+
+  /* ── NEXT IRRIGATION ── */
+  .next-card {
+    background:linear-gradient(135deg, rgba(61,92,64,0.25) 0%, rgba(15,28,16,0.4) 100%);
+    border:1px solid rgba(122,158,126,0.2);
+    border-radius:12px; padding:16px 18px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .next-icon {
+    width:40px; height:40px; border-radius:50%;
+    background:rgba(122,158,126,0.12);
+    border:1px solid rgba(122,158,126,0.25);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .next-icon svg { width:18px; height:18px; stroke:var(--sage); fill:none; stroke-width:1.8; }
+  .next-label { font-size:10px; color:var(--muted); letter-spacing:1px; margin-bottom:4px; }
+  .next-time  { font-size:15px; font-weight:500; color:var(--cream); letter-spacing:0.3px; }
+
+  /* ── VALVE ROW ── */
+  .valve-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .valve-row:last-child { border-bottom:none; padding-bottom:0; }
+  .valve-row:first-child { padding-top:0; }
+  .valve-left { display:flex; align-items:center; gap:10px; }
+  .valve-num {
+    width:28px; height:28px; border-radius:6px;
+    background:rgba(255,255,255,0.06); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:600; color:var(--muted); flex-shrink:0;
+  }
+  .valve-name { font-size:13px; font-weight:400; color:var(--cream); }
+  .valve-alarm-ok    { display:flex; align-items:center; gap:5px; font-size:11px; color:#7ecb82; }
+  .valve-alarm-bad   { display:flex; align-items:center; gap:5px; font-size:11px; color:#f08080; }
+  .valve-alarm-dot   { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .valve-alarm-ok  .valve-alarm-dot { background:#6dcc72; }
+  .valve-alarm-bad .valve-alarm-dot { background:#f05050; box-shadow:0 0 5px #f05050; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes spin  { to { transform:rotate(360deg); } }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .page { animation:fadeUp 0.4s ease both; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="/">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </a>
+  <div>
+    <div class="topbar-title">LIGA Garden</div>
+    <div class="topbar-sub">מערכת השקיה</div>
+  </div>
+</div>
+
+<div id="root">
+  <div class="center-state">
+    <div class="spinner"></div>
+    <div class="state-text">טוען נתוני השקיה…</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // Extract projectId and unitId from the URL: /irrigation/{projectId}/{unitId}
+  const parts = location.pathname.replace(/\/$/, '').split('/');
+  const projectId = parts[parts.length - 2];
+  const unitId    = parts[parts.length - 1];
+
+  const root = document.getElementById('root');
+
+  function setError(msg) {
+    root.innerHTML = `
+      <div class="center-state">
+        <div class="error-icon">⚠️</div>
+        <div class="state-text">${msg}</div>
+      </div>`;
+  }
+
+  function controllerStatus(unit) {
+    const s = (unit.Status || unit.ControllerStatus || '').toString().toLowerCase();
+    if (s.includes('alarm'))    return { cls: 'status-alarm',    label: 'התראה' };
+    if (s === '1' || s.includes('active') || s.includes('ok') || s.includes('connect'))
+                                return { cls: 'status-active',   label: 'מחובר' };
+    return                             { cls: 'status-inactive',  label: 'לא מחובר' };
+  }
+
+  function formatM3(val) {
+    if (val == null || val === '') return '—';
+    const n = parseFloat(val);
+    if (isNaN(n)) return '—';
+    return n >= 1000 ? (n / 1000).toFixed(1) + ' מ״ק' : Math.round(n) + ' ליטר';
+  }
+
+  function formatNextTime(val) {
+    if (!val) return '—';
+    try {
+      const d = new Date(val);
+      if (isNaN(d)) return val;
+      return d.toLocaleString('he-IL', { weekday:'short', day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit' });
+    } catch { return val; }
+  }
+
+  function findAccumulator(unit, key) {
+    const acc = unit.Accumulators || unit.accumulators || [];
+    const item = acc.find(a =>
+      (a.Name || a.name || '').toLowerCase().includes(key.toLowerCase()) ||
+      (a.Type || a.type || '').toLowerCase().includes(key.toLowerCase())
+    );
+    return item ? (item.Value ?? item.value ?? item.Amount ?? item.amount) : null;
+  }
+
+  function render(unit) {
+    const status   = controllerStatus(unit);
+    const valves   = unit.Valves || unit.valves || unit.Stations || unit.stations || [];
+    const monthM3  = findAccumulator(unit, 'month') ?? findAccumulator(unit, 'חודש');
+    const seasonM3 = findAccumulator(unit, 'season') ?? findAccumulator(unit, 'עונה');
+    const nextTime = unit.NextIrrigation || unit.NextProgram || unit.NextRun || unit.nextIrrigation || null;
+
+    const valvesHTML = valves.length === 0
+      ? '<div style="font-size:12px;color:var(--muted);padding:8px 0">אין ברזים רשומים</div>'
+      : valves.map((v, i) => {
+          const name    = v.Name || v.name || v.StationName || `ברז ${i + 1}`;
+          const hasAlarm = v.Alarm || v.alarm || v.AlarmStatus || false;
+          const alarmCls = hasAlarm ? 'valve-alarm-bad' : 'valve-alarm-ok';
+          const alarmTxt = hasAlarm ? 'התראה' : 'תקין';
+          return `
+            <div class="valve-row">
+              <div class="valve-left">
+                <div class="valve-num">${i + 1}</div>
+                <div class="valve-name">${name}</div>
+              </div>
+              <div class="${alarmCls}">
+                <div class="valve-alarm-dot"></div>
+                ${alarmTxt}
+              </div>
+            </div>`;
+        }).join('');
+
+    root.innerHTML = `
+      <div class="page">
+        <div class="unit-header">
+          <div class="unit-name">${unit.UnitName || unit.Name || unit.name || 'בקר השקיה'}</div>
+          <div class="status-row">
+            <span class="status-badge ${status.cls}">
+              <span class="status-dot"></span>
+              ${status.label}
+            </span>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-label">השקיה הבאה</div>
+          <div class="next-card">
+            <div class="next-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <div class="next-label">מתוזמן ל</div>
+              <div class="next-time">${formatNextTime(nextTime)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-label">צריכת מים</div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">החודש</div>
+              <div class="stat-value">${formatM3(monthM3)}</div>
+              <div class="stat-unit">צריכה חודשית</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">העונה</div>
+              <div class="stat-value">${formatM3(seasonM3)}</div>
+              <div class="stat-unit">צריכה עונתית</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-label">ברזים — ${valves.length}</div>
+          <div class="card">${valvesHTML}</div>
+        </div>
+      </div>`;
+  }
+
+  if (!projectId || !unitId || projectId === 'irrigation') {
+    setError('כתובת URL שגויה — חסרים projectId ו-unitId');
+    return;
+  }
+
+  fetch(`/.netlify/functions/galcon?unitId=${unitId}&projectId=${projectId}`)
+    .then(r => r.json())
+    .then(data => {
+      console.log('Galcon unit data:', JSON.stringify(data));
+      const unit = (data && data.Body) || data;
+      if (!unit || unit.error) {
+        setError(unit && unit.error ? unit.error : 'שגיאה בטעינת הנתונים');
+        return;
+      }
+      render(unit);
+    })
+    .catch(err => setError('שגיאת רשת: ' + err.message));
+})();
+</script>
+</body>
+</html>
