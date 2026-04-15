@@ -37,7 +37,7 @@ async function getUnitList(token, projectId) {
 }
 
 async function getUnitData(token, projectId, unitId) {
-  const url = `${GALCON_BASE_URL}/api/api/project/${projectId}/${unitId}?ProjectID=${projectId}`;
+  const url = `${GALCON_BASE_URL}/api/api/unit/${unitId}?ProjectID=${projectId}`;
   console.log('getUnitData URL:', url);
   const resp = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` }
