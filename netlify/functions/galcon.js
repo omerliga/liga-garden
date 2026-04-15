@@ -22,6 +22,27 @@ async function getGalconToken() {
   return token;
 }
 
+async function getUserProjects(token) {
+  // TODO: replace with exact URL from browser Network tab → UserProjects request
+  const resp = await fetch(`${GALCON_BASE_URL}/api/api/UserProjects`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  console.log('UserProjects status:', resp.status);
+  const data = await resp.json();
+  console.log('UserProjects response:', JSON.stringify(data));
+  return data;
+}
+
+async function getProjectInfo(token, projectId) {
+  const resp = await fetch(`${GALCON_BASE_URL}/api/api/project/${projectId}/Info`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  console.log(`Project ${projectId} status:`, resp.status);
+  const data = await resp.json();
+  console.log(`Project ${projectId} response:`, JSON.stringify(data));
+  return data;
+}
+
 async function getClientsWithSerialNumbers() {
   const resp = await fetch(
     `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Clients?fields[]=Client%20Name&fields[]=Serial%20Number`,
@@ -35,16 +56,6 @@ async function getClientsWithSerialNumbers() {
       serialNumber: r.fields['Serial Number'] || ''
     }))
     .filter(c => c.serialNumber);
-}
-
-async function getAllControllers(token) {
-  const resp = await fetch(`${GALCON_BASE_URL}/api/Controllers`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  console.log('Controllers status:', resp.status);
-  const data = await resp.json();
-  console.log('Controllers response:', JSON.stringify(data));
-  return data;
 }
 
 exports.handler = async (event) => {
@@ -61,18 +72,19 @@ exports.handler = async (event) => {
 
     console.log('Clients with serial numbers:', clients.length);
 
-    const controllersData = await getAllControllers(token);
+    const projects = await getUserProjects(token);
 
-    const results = clients.map(client => ({
-      client: client.name,
-      serialNumber: client.serialNumber,
-      data: controllersData
-    }));
+    const projectList = (projects && projects.Body) || projects || [];
+    console.log('Projects count:', Array.isArray(projectList) ? projectList.length : JSON.stringify(projectList));
+
+    const projectInfos = await Promise.all(
+      projectList.map(p => getProjectInfo(token, p.ProjectId || p.projectId || p.id))
+    );
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ controllers: results })
+      body: JSON.stringify({ projects: projectInfos, clients })
     };
 
   } catch (err) {
