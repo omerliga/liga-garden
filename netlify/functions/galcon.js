@@ -49,7 +49,8 @@ exports.handler = async (event) => {
     const results = await Promise.all(
       projects.map(async (project) => {
         const projectId = project.ProjectId || project.projectId || project.id;
-        const units = await getUnitList(token, projectId);
+        const unitData = await getUnitList(token, projectId);
+        const units = (unitData && unitData.Body) || [];
         return { project, units };
       })
     );
