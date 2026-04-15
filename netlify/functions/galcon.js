@@ -36,6 +36,15 @@ async function getUnitList(token, projectId) {
   return data.Body || [];
 }
 
+async function getUnitData(token, projectId, unitId) {
+  const resp = await fetch(`${GALCON_BASE_URL}/api/api/project/${projectId}/${unitId}?ProjectID=${projectId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await resp.json();
+  console.log(`Unit ${unitId} response:`, JSON.stringify(data));
+  return data;
+}
+
 exports.handler = async (event) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -43,7 +52,14 @@ exports.handler = async (event) => {
   };
 
   try {
+    const { unitId, projectId } = event.queryStringParameters || {};
+
     const token = await getToken();
+
+    if (unitId && projectId) {
+      const data = await getUnitData(token, projectId, unitId);
+      return { statusCode: 200, headers, body: JSON.stringify(data) };
+    }
 
     const projectsData = await getUserProjects(token);
     const projects = (projectsData && projectsData.Body) || [];
@@ -51,8 +67,7 @@ exports.handler = async (event) => {
 
     const results = await Promise.all(
       projects.map(async (project) => {
-        const projectId = project.ProjectID;
-        const units = await getUnitList(token, projectId);
+        const units = await getUnitList(token, project.ProjectID);
         return { project, units };
       })
     );
