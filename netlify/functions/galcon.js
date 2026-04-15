@@ -5,7 +5,7 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const GALCON_EMAIL     = process.env.GALCON_EMAIL;
 const GALCON_PASSWORD  = process.env.GALCON_PASSWORD;
 
-const GALCON_BASE_URL  = 'https://api.gsi.galconc.com';
+const GALCON_BASE_URL  = 'https://gsi.galcon-smart.com';
 
 async function getGalconToken() {
   console.log('Logging in to Galcon as:', GALCON_EMAIL);
