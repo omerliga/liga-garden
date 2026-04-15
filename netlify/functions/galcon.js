@@ -17,8 +17,9 @@ async function getGalconToken() {
   console.log('Galcon login status:', resp.status);
   const data = await resp.json();
   console.log('Galcon login response:', JSON.stringify(data));
-  if (!data.Body?.AccountToken) throw new Error('Failed to get Galcon token: ' + JSON.stringify(data));
-  return data.Body.AccountToken;
+  const token = data && data.Body && data.Body.AccountToken;
+  if (!token) throw new Error('Failed to get Galcon token: ' + JSON.stringify(data));
+  return token;
 }
 
 async function getClientsWithSerialNumbers() {
