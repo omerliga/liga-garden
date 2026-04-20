@@ -644,6 +644,7 @@ async function init() {
     setTimeout(() => document.getElementById('splash').classList.add('out'), 3000);
 
     // Fetch galcon in parallel if client has a serial number
+    console.log('data.serialNumber:', data.serialNumber);
     const galconUnit = data.serialNumber ? await fetchGalconUnit(data.serialNumber) : null;
 
     if (!recs.length && !galconUnit) { showEmpty(); return; }

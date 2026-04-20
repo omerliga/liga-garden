@@ -33,6 +33,7 @@ exports.handler = async (event) => {
           clientName   = rec.fields['Client Name'] || client;
           profilePhoto = rec.fields['Profile Photo']?.[0]?.url || null;
           serialNumber = rec.fields['Serial Number'] || null;
+          console.log('Client serial number:', serialNumber);
         }
       }
     }
