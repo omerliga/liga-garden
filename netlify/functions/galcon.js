@@ -54,13 +54,45 @@ exports.handler = async (event) => {
   };
 
   try {
-    const { unitId, projectId } = event.queryStringParameters || {};
+    const { unitId, projectId, serialNumber } = event.queryStringParameters || {};
 
     const token = await getToken();
 
     if (unitId && projectId) {
       const data = await getUnitData(token, projectId, unitId);
       return { statusCode: 200, headers, body: JSON.stringify(data) };
+    }
+
+    if (serialNumber) {
+      console.log('Searching for serial number:', serialNumber);
+      const projectsData = await getUserProjects(token);
+      const projects = (projectsData && projectsData.Body) || [];
+      console.log('Projects to search:', projects.length);
+
+      for (const project of projects) {
+        const pid = project.ProjectID;
+        const units = await getUnitList(token, pid);
+        console.log(`Project ${pid}: checking ${units.length} units`);
+
+        for (const unit of units) {
+          const uid = unit.ControlUnitID;
+          const detail = await getUnitData(token, pid, uid);
+          const sn = detail && detail.Body && detail.Body.Config && detail.Body.Config.SN;
+          console.log(`Unit ${uid} SN:`, sn);
+
+          if (sn && String(sn).trim() === String(serialNumber).trim()) {
+            console.log('Serial number match found — projectId:', pid, 'unitId:', uid);
+            return {
+              statusCode: 200,
+              headers,
+              body: JSON.stringify({ projectId: pid, unitId: uid })
+            };
+          }
+        }
+      }
+
+      console.warn('No unit matched serial number:', serialNumber);
+      return { statusCode: 404, headers, body: JSON.stringify({ error: 'Unit not found' }) };
     }
 
     const projectsData = await getUserProjects(token);

@@ -596,48 +596,23 @@ function buildIrrigationCard(unit, idx) {
 }
 
 async function fetchGalconUnit(serialNumber) {
-  console.log('[Galcon] Starting lookup for serial number:', serialNumber);
+  console.log('[Galcon] Looking up serial number:', serialNumber);
   try {
-    // Step 1: get all projects and their unit lists
-    const allData = await fetch('/.netlify/functions/galcon').then(r => r.json());
-    const projects = allData.projects || [];
-    console.log('[Galcon] Projects received:', projects.length);
+    // Step 1: ask the server to find projectId+unitId by scanning Config.SN
+    const lookupResp = await fetch(`/.netlify/functions/galcon?serialNumber=${encodeURIComponent(serialNumber)}`);
+    const lookup = await lookupResp.json();
+    console.log('[Galcon] Lookup result:', JSON.stringify(lookup));
 
-    // Step 2: find the unit whose ControlUnitID matches the serial number.
-    // Serial numbers may be zero-padded strings ("0000000000131490") while
-    // ControlUnitID is often a plain integer, so compare numerically too.
-    const snNumeric = String(parseInt(serialNumber, 10));
-    let foundProjectId = null, foundUnitId = null;
-
-    for (const p of projects) {
-      const projectId = p.project?.ProjectID;
-      const units     = p.units || [];
-      console.log(`[Galcon] Project ${projectId} has ${units.length} units:`,
-        units.map(u => u.ControlUnitID).join(', '));
-
-      const match = units.find(u => {
-        const id = String(u.ControlUnitID).trim();
-        return id === String(serialNumber).trim() || id === snNumeric;
-      });
-
-      if (match) {
-        foundProjectId = projectId;
-        foundUnitId    = match.ControlUnitID;
-        console.log('[Galcon] Match found — projectId:', foundProjectId, 'unitId:', foundUnitId);
-        break;
-      }
-    }
-
-    if (!foundProjectId || !foundUnitId) {
-      console.warn('[Galcon] No unit matched serial number:', serialNumber);
+    if (!lookup.projectId || !lookup.unitId) {
+      console.warn('[Galcon] Serial number not found:', serialNumber);
       return null;
     }
 
-    // Step 3: fetch full unit data
-    const url = `/.netlify/functions/galcon?unitId=${foundUnitId}&projectId=${foundProjectId}`;
+    // Step 2: fetch full unit data
+    const url = `/.netlify/functions/galcon?unitId=${lookup.unitId}&projectId=${lookup.projectId}`;
     console.log('[Galcon] Fetching full unit data:', url);
     const unitData = await fetch(url).then(r => r.json());
-    console.log('[Galcon] Full unit data received:', JSON.stringify(unitData).substring(0, 300));
+    console.log('[Galcon] Full unit data:', JSON.stringify(unitData).substring(0, 300));
 
     return (unitData && unitData.Body) || unitData || null;
   } catch(e) {
