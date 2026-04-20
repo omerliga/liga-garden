@@ -1,0 +1,16 @@
+{
+  "name": "LIGA Garden",
+  "short_name": "LIGA Garden",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1c10",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo_transparent.png",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ]
+}
