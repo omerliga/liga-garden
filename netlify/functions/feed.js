@@ -16,6 +16,7 @@ exports.handler = async (event) => {
     // 1. שליפת תמונת פרופיל של הלקוח
     let profilePhoto = null;
     let clientName   = client;
+    let serialNumber = null;
     if (client) {
       const cParams = new URLSearchParams({
         filterByFormula: `FIND(LOWER("${client}"), LOWER({Client Name})) > 0`,
@@ -31,6 +32,7 @@ exports.handler = async (event) => {
         if (rec) {
           clientName   = rec.fields['Client Name'] || client;
           profilePhoto = rec.fields['Profile Photo']?.[0]?.url || null;
+          serialNumber = rec.fields['Serial Number'] || null;
         }
       }
     }
@@ -66,6 +68,7 @@ exports.handler = async (event) => {
         records:      data.records || [],
         profilePhoto,
         clientName,
+        serialNumber,
       }),
     };
   } catch (e) {
