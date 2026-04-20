@@ -274,6 +274,27 @@
   }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
+  /* ── IRRIGATION CARD ── */
+  .tag-irrigation { background:rgba(20,70,130,0.5); color:#8ec5f5; border-color:rgba(100,180,255,0.25); }
+  .card-irr-bg {
+    position:absolute; inset:0;
+    background:linear-gradient(155deg,#0d2035 0%,#0f2a1e 50%,#071810 100%);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .card-irr-bg svg { opacity:0.1; }
+  .card-irr-stats {
+    display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;
+    opacity:0; transform:translateY(8px); transition:all 0.5s ease 0.35s;
+  }
+  .card.in-view .card-irr-stats { opacity:1; transform:translateY(0); }
+  .irr-stat { background:rgba(255,255,255,0.07); border-radius:8px; padding:9px 11px; }
+  .irr-stat-label { font-size:9px; color:rgba(255,255,255,0.4); letter-spacing:1px; margin-bottom:4px; }
+  .irr-stat-value { font-size:14px; font-weight:500; color:var(--cream); line-height:1.2; }
+  .irr-days { grid-column:1/-1; }
+  .conn-dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-left:5px; vertical-align:middle; }
+  .conn-on  { background:#6dcc72; box-shadow:0 0 5px #6dcc72; animation:pulse 2s infinite; }
+  .conn-off { background:#f05050; }
+
   @keyframes riseIn   { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
   @keyframes loadBar  { to{width:100%} }
   @keyframes spin     { to{transform:rotate(360deg)} }
@@ -486,6 +507,110 @@ function shareApp() {
   t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
+// ── irrigation helpers ──
+const HEB_DAYS = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const DAY_KEYS = ['DSundayState','DMondayState','DTuesdayState','DWednesdayState','DThursdayState','DFridayState','DSaturdayState'];
+
+function formatNextIrrigation(nextArr) {
+  if (!nextArr || !nextArr.length) return '—';
+  const n = nextArr[0];
+  const mins = n.NextStartTime || 0;
+  const day  = n.DayToNextStart || 0;
+  const h = String(Math.floor(mins / 60)).padStart(2,'0');
+  const m = String(mins % 60).padStart(2,'0');
+  const dayLabel = day === 0 ? 'היום' : day === 1 ? 'מחר' : `בעוד ${day} ימים`;
+  return `${dayLabel} ${h}:${m}`;
+}
+
+function buildIrrigationCard(unit, idx) {
+  const cfg        = unit.Config || {};
+  const connected  = cfg.ConnectionStatus === true;
+  const hasAlarm   = (cfg.DeviceAlarm || 0) > 0;
+  const totalMonth = unit.Accumulators?.[0]?.TotalMonth;
+  const validDays  = unit.ValidDays || {};
+  const activeDays = DAY_KEYS.map((k,i) => validDays[k] ? HEB_DAYS[i] : null).filter(Boolean);
+  const nextIrr    = formatNextIrrigation(unit.NextIrrigationOnline);
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.index = idx;
+
+  // background
+  const bg = document.createElement('div'); bg.className = 'card-irr-bg';
+  bg.innerHTML = `<svg width="220" height="220" viewBox="0 0 200 200" fill="none">
+    <path d="M100 20C100 20 160 70 160 120C160 155 133 175 100 175C67 175 40 155 40 120C40 70 100 20 100 20Z" stroke="#7ab8f5" stroke-width="1.5"/>
+    <path d="M100 175L100 55" stroke="#7ab8f5" stroke-width="0.8" stroke-dasharray="4 5"/>
+    <path d="M100 140Q122 118 142 98" stroke="#7ab8f5" stroke-width="0.8"/>
+    <path d="M100 155Q78 133 58 113" stroke="#7ab8f5" stroke-width="0.8"/>
+    <circle cx="100" cy="175" r="3" fill="#7ab8f5"/>
+  </svg>`;
+  card.appendChild(bg);
+
+  // overlay
+  const ov = document.createElement('div'); ov.className = 'card-ov'; card.appendChild(ov);
+
+  // tag
+  const tg = document.createElement('div'); tg.className = 'card-tag tag-irrigation';
+  tg.innerHTML = `<span class="tag-dot"></span>השקיה`; card.appendChild(tg);
+
+  // actions
+  const acts = document.createElement('div'); acts.className = 'card-acts';
+  acts.innerHTML = `<div class="act" onclick="shareApp()">
+    <div class="act-ic"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>
+    <span class="act-lbl">שתף</span>
+  </div>`;
+  card.appendChild(acts);
+
+  // bottom
+  const statusText = hasAlarm ? `<span style="color:#f08080">⚠️ יש תקלה</span>` : `<span style="color:#9ecfa0">✅ מערכת תקינה</span>`;
+  const connHTML   = `<span class="conn-dot ${connected ? 'conn-on' : 'conn-off'}"></span>${connected ? 'מחובר' : 'לא מחובר'}`;
+  const daysHTML   = activeDays.length ? activeDays.join(' · ') : 'לא הוגדרו ימים';
+  const waterHTML  = totalMonth != null ? `${totalMonth} מ״ק` : '—';
+
+  const bot = document.createElement('div'); bot.className = 'card-bot';
+  bot.innerHTML = `
+    <div class="card-date">${statusText}</div>
+    <div class="card-title">${unit.UnitName || 'מערכת השקיה'}</div>
+    <div class="card-desc" style="font-size:11px;color:rgba(255,255,255,0.4)">${connHTML}</div>
+    <div class="card-irr-stats">
+      <div class="irr-stat">
+        <div class="irr-stat-label">צריכה החודש</div>
+        <div class="irr-stat-value">${waterHTML}</div>
+      </div>
+      <div class="irr-stat">
+        <div class="irr-stat-label">השקיה הבאה</div>
+        <div class="irr-stat-value" style="font-size:12px">${nextIrr}</div>
+      </div>
+      <div class="irr-stat irr-days">
+        <div class="irr-stat-label">ימי השקיה</div>
+        <div class="irr-stat-value" style="font-size:12px">${daysHTML}</div>
+      </div>
+    </div>`;
+  card.appendChild(bot);
+  return card;
+}
+
+async function fetchGalconUnit(serialNumber) {
+  try {
+    const allData = await fetch('/.netlify/functions/galcon').then(r => r.json());
+    let foundProjectId = null, foundUnitId = null;
+    for (const p of (allData.projects || [])) {
+      const match = (p.units || []).find(u => String(u.ControlUnitID).trim() === String(serialNumber).trim());
+      if (match) {
+        foundProjectId = p.project?.ProjectID;
+        foundUnitId    = match.ControlUnitID;
+        break;
+      }
+    }
+    if (!foundProjectId || !foundUnitId) return null;
+    const unitData = await fetch(`/.netlify/functions/galcon?unitId=${foundUnitId}&projectId=${foundProjectId}`).then(r => r.json());
+    return (unitData && unitData.Body) || unitData || null;
+  } catch(e) {
+    console.warn('Galcon fetch failed:', e.message);
+    return null;
+  }
+}
+
 // ── states ──
 const feed = () => document.getElementById('feed');
 const showLoading = () => { feed().innerHTML=`<div class="state"><div class="spinner"></div><div class="state-title">טוענת את הגינה</div><div class="state-sub">רגע אחד...</div></div>`; };
@@ -518,10 +643,23 @@ async function init() {
     // סגור Splash אחרי 3 שניות
     setTimeout(() => document.getElementById('splash').classList.add('out'), 3000);
 
-    if (!recs.length) { showEmpty(); return; }
+    // Fetch galcon in parallel if client has a serial number
+    const galconUnit = data.serialNumber ? await fetchGalconUnit(data.serialNumber) : null;
+
+    if (!recs.length && !galconUnit) { showEmpty(); return; }
+
     feed().innerHTML = '';
     recs.forEach((r,i) => feed().appendChild(buildCard(r,i)));
-    buildDots(recs.length);
+
+    // Insert irrigation card at position 1 (after first feed card, or first if feed is empty)
+    if (galconUnit) {
+      const cards = feed().querySelectorAll('.card');
+      const irrCard = buildIrrigationCard(galconUnit, cards.length > 0 ? 1 : 0);
+      feed().insertBefore(irrCard, cards[1] || null);
+      feed().querySelectorAll('.card').forEach((c,i) => c.dataset.index = i);
+    }
+
+    buildDots(feed().querySelectorAll('.card').length);
     observe();
     setTimeout(() => document.querySelector('.card')?.classList.add('in-view'), 150);
   } catch(e) {
