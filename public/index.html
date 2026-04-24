@@ -285,8 +285,19 @@
     position:absolute; inset:0;
     background:linear-gradient(155deg,#0d2035 0%,#0f2a1e 50%,#071810 100%);
     display:flex; align-items:center; justify-content:center;
+    transition:background 0.8s ease;
   }
   .card-irr-bg svg { opacity:0.1; }
+  .irr-weather-badge {
+    position:absolute; top:62px; right:20px;
+    display:flex; flex-direction:column; align-items:flex-end;
+    opacity:0; transform:translateY(-8px);
+    transition:all 0.5s ease 0.2s;
+  }
+  .card.in-view .irr-weather-badge { opacity:1; transform:translateY(0); }
+  .irr-weather-icon { width:54px; height:54px; }
+  .irr-weather-temp { font-size:28px; font-weight:300; color:var(--cream); line-height:1; text-align:right; }
+  .irr-weather-desc { font-size:10px; color:rgba(255,255,255,0.45); letter-spacing:0.5px; margin-top:4px; text-align:right; }
   .card-irr-stats {
     display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;
     opacity:0; transform:translateY(8px); transition:all 0.5s ease 0.35s;
@@ -527,7 +538,17 @@ function formatNextIrrigation(nextArr) {
   return `${dayLabel} ${h}:${m}`;
 }
 
-function buildIrrigationCard(unit, idx) {
+function getWeatherGradient(conditionId, isNight) {
+  if (!conditionId) return 'linear-gradient(155deg,#0d2035 0%,#0f2a1e 50%,#071810 100%)';
+  if (isNight) return 'linear-gradient(135deg, #050d1a, #0d1f3c, #1a2952)';
+  if (conditionId === 800) return 'linear-gradient(135deg, #1a3a2a, #2d5a1b, #c9a84c33)';
+  if (conditionId >= 801 && conditionId <= 804) return 'linear-gradient(135deg, #1a2535, #2a3f55, #4a6080)';
+  if ((conditionId >= 300 && conditionId < 400) || (conditionId >= 500 && conditionId < 600)) return 'linear-gradient(135deg, #0d1b2a, #1a3a5c, #2d6a9f44)';
+  if (conditionId >= 200 && conditionId < 300) return 'linear-gradient(135deg, #0a0a1a, #1a1a3a, #3a2a5c)';
+  return 'linear-gradient(155deg,#0d2035 0%,#0f2a1e 50%,#071810 100%)';
+}
+
+function buildIrrigationCard(unit, idx, weather) {
   const cfg        = unit.Config || {};
   const connected  = cfg.ConnectionStatus === true;
   const hasAlarm   = (cfg.DeviceAlarm || 0) > 0;
@@ -540,8 +561,14 @@ function buildIrrigationCard(unit, idx) {
   card.className = 'card';
   card.dataset.index = idx;
 
-  // background
+  // weather-based background
+  const isNight = weather && weather.dt && weather.sunrise && weather.sunset
+    ? (weather.dt < weather.sunrise || weather.dt > weather.sunset)
+    : false;
+  const gradient = getWeatherGradient(weather && weather.conditionId, isNight);
+
   const bg = document.createElement('div'); bg.className = 'card-irr-bg';
+  bg.style.background = gradient;
   bg.innerHTML = `<svg width="220" height="220" viewBox="0 0 200 200" fill="none">
     <path d="M100 20C100 20 160 70 160 120C160 155 133 175 100 175C67 175 40 155 40 120C40 70 100 20 100 20Z" stroke="#7ab8f5" stroke-width="1.5"/>
     <path d="M100 175L100 55" stroke="#7ab8f5" stroke-width="0.8" stroke-dasharray="4 5"/>
@@ -553,6 +580,16 @@ function buildIrrigationCard(unit, idx) {
 
   // overlay
   const ov = document.createElement('div'); ov.className = 'card-ov'; card.appendChild(ov);
+
+  // weather badge (top-right)
+  if (weather && weather.temp != null) {
+    const wb = document.createElement('div'); wb.className = 'irr-weather-badge';
+    wb.innerHTML = `
+      <img class="irr-weather-icon" src="https://openweathermap.org/img/wn/${weather.icon}@2x.png" alt="${weather.description}">
+      <div class="irr-weather-temp">${weather.temp}°</div>
+      <div class="irr-weather-desc">${weather.description}</div>`;
+    card.appendChild(wb);
+  }
 
   // tag
   const tg = document.createElement('div'); tg.className = 'card-tag tag-irrigation';
@@ -653,10 +690,14 @@ async function init() {
     // סגור Splash אחרי 3 שניות
     setTimeout(() => document.getElementById('splash').classList.add('out'), 3000);
 
-    // Fetch galcon in parallel if client has a serial number
+    // Fetch galcon + weather in parallel
     console.log('data.serialNumber:', data.serialNumber);
-    const galconUnit = data.serialNumber ? await fetchGalconUnit(data.serialNumber) : null;
+    const [galconUnit, weather] = await Promise.all([
+      data.serialNumber ? fetchGalconUnit(data.serialNumber) : Promise.resolve(null),
+      fetch('/.netlify/functions/weather').then(r => r.json()).catch(e => { console.warn('[Weather] fetch failed:', e.message); return null; })
+    ]);
     console.log('[Galcon] galconUnit resolved:', galconUnit ? (galconUnit.UnitName || JSON.stringify(galconUnit).substring(0, 150)) : 'null');
+    console.log('[Weather] data:', weather ? `${weather.temp}°C id:${weather.conditionId} icon:${weather.icon}` : 'null');
 
     if (!recs.length && !galconUnit) { showEmpty(); return; }
 
@@ -666,7 +707,7 @@ async function init() {
     // Insert irrigation card at position 1 (after first feed card, or first if feed is empty)
     if (galconUnit) {
       const cards = feed().querySelectorAll('.card');
-      const irrCard = buildIrrigationCard(galconUnit, cards.length > 0 ? 1 : 0);
+      const irrCard = buildIrrigationCard(galconUnit, cards.length > 0 ? 1 : 0, weather);
       feed().insertBefore(irrCard, cards[1] || null);
       feed().querySelectorAll('.card').forEach((c,i) => c.dataset.index = i);
     }
