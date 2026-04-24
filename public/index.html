@@ -281,9 +281,9 @@
 
   /* ── IRRIGATION CARD ── */
   .tag-irrigation { background:rgba(20,70,130,0.5); color:#8ec5f5; border-color:rgba(100,180,255,0.25); }
-  .card-irr-bg { position:absolute; inset:0; overflow:hidden; }
+  .card-irr-bg { position:absolute; top:0; left:0; right:0; bottom:0; width:100%; height:100%; overflow:hidden; }
   .card-irr-name {
-    position:absolute; inset:0; z-index:2;
+    position:absolute; top:0; left:0; width:100%; height:100%; z-index:2;
     display:flex; align-items:center; justify-content:center;
     overflow:hidden; pointer-events:none;
   }
@@ -294,7 +294,7 @@
   }
 
   /* ── WEATHER SCENES ── */
-  .irr-scene { position:absolute; inset:0; overflow:hidden; }
+  .irr-scene { position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; }
 
   /* rain */
   .irr-scene-rain { background:linear-gradient(to bottom, #060d1a 0%, #0b1928 55%, #0d1e2a 100%); }
@@ -312,11 +312,12 @@
     width:160px; height:160px; display:flex; align-items:center; justify-content:center;
   }
   .irr-sun-glow {
-    position:absolute; inset:-35px; border-radius:50%;
+    position:absolute; top:-35px; left:-35px; right:-35px; bottom:-35px;
+    border-radius:50%;
     background:radial-gradient(circle, rgba(255,215,70,0.28) 0%, transparent 68%);
     animation:irrSunGlow 3s ease-in-out infinite;
   }
-  .irr-sun-rays { position:absolute; inset:0; animation:irrSunSpin 24s linear infinite; }
+  .irr-sun-rays { position:absolute; top:0; left:0; width:100%; height:100%; animation:irrSunSpin 24s linear infinite; }
   .irr-sun-core {
     width:50px; height:50px; border-radius:50%; position:relative; z-index:1;
     background:radial-gradient(circle, #fff8e0 0%, #ffe055 45%, #ffac20 100%);
@@ -343,7 +344,7 @@
   /* storm / disconnected */
   .irr-scene-storm { background:linear-gradient(to bottom, #020206 0%, #07070f 60%, #060609 100%); }
   .irr-lightning-flash {
-    position:absolute; inset:0; pointer-events:none;
+    position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;
     background:rgba(210,225,255,0.15); opacity:0;
     animation:irrFlashBg 5.5s ease-in-out infinite;
   }
@@ -661,7 +662,7 @@ function buildWeatherScene(cfg) {
     return `<div class="irr-scene irr-scene-sunny">
       <div class="irr-sun-wrap">
         <div class="irr-sun-glow"></div>
-        <svg class="irr-sun-rays" viewBox="0 0 160 160" width="160" height="160">${rays}</svg>
+        <svg class="irr-sun-rays" viewBox="0 0 160 160">${rays}</svg>
         <div class="irr-sun-core"></div>
       </div>
       ${sparkles}
