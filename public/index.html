@@ -281,6 +281,22 @@
 
   /* ── IRRIGATION CARD ── */
   .tag-irrigation { background:rgba(20,70,130,0.5); color:#8ec5f5; border-color:rgba(100,180,255,0.25); }
+  .irr-weather-badge {
+    position:absolute; top:62px; right:20px; z-index:10;
+    display:flex; flex-direction:column; align-items:flex-end;
+    opacity:0; transform:translateY(-8px); transition:all 0.5s ease 0.2s;
+  }
+  .card.in-view .irr-weather-badge { opacity:1; transform:translateY(0); }
+  .irr-weather-row { display:flex; align-items:center; gap:4px; }
+  .irr-weather-icon { width:48px; height:48px; }
+  .irr-weather-temp {
+    font-size:32px; font-weight:300; color:#fff;
+    line-height:1; text-shadow:0 1px 8px rgba(0,0,0,0.5);
+  }
+  .irr-weather-desc {
+    font-size:11px; color:rgba(255,255,255,0.7); letter-spacing:0.5px;
+    margin-top:2px; text-align:right; text-shadow:0 1px 4px rgba(0,0,0,0.6);
+  }
   .card-irr-bg { position:absolute; inset:0; width:100%; height:100%; overflow:hidden; }
   .card-irr-name {
     position:absolute; top:0; left:0; width:100%; height:100%; z-index:2;
@@ -595,9 +611,17 @@ function formatNextIrrigation(nextArr) {
   return `${dayLabel} ${h}:${m}`;
 }
 
-function buildWeatherScene(cfg) {
+function buildWeatherScene(cfg, weather) {
+  // Determine scene: disconnected overrides everything; otherwise use real weather id
+  const id = weather && weather.weatherId;
+  const isStorm  = cfg.ConnectionStatus === false || (id >= 200 && id < 300);
+  const isRain   = !isStorm && (id >= 300 && id < 400 || id >= 500 && id < 600);
+  const isSunny  = !isStorm && !isRain && (id === 800 || cfg.ControllerState === 2);
+  // everything else → cloudy (id 801-804, or no weather data → use cfg.RainChance fallback)
+  const useRainFallback = !id && cfg.RainChance === true;
+
   // ── Storm / disconnected ──
-  if (cfg.ConnectionStatus === false) {
+  if (isStorm) {
     return `<div class="irr-scene irr-scene-storm">
       <svg style="position:absolute;top:-18px;left:-30px;opacity:1" width="270" height="108" viewBox="0 0 270 108">
         <ellipse cx="135" cy="88" rx="135" ry="52" fill="#1e1e32"/>
@@ -621,7 +645,7 @@ function buildWeatherScene(cfg) {
   }
 
   // ── Rain ──
-  if (cfg.RainChance === true) {
+  if (isRain || useRainFallback) {
     const drops = Array.from({length: 42}, (_, i) => {
       const left  = ((i * 97 + 7) % 100).toFixed(1);
       const dur   = (0.46 + (i % 7) * 0.055).toFixed(2);
@@ -645,7 +669,7 @@ function buildWeatherScene(cfg) {
   }
 
   // ── Sunny / irrigating ──
-  if (cfg.ControllerState === 2) {
+  if (isSunny) {
     const rays = Array.from({length: 10}, (_, i) => {
       const a   = i * 36, r = Math.PI / 180;
       const x1  = (80 + 34 * Math.cos(a * r)).toFixed(1), y1 = (80 + 34 * Math.sin(a * r)).toFixed(1);
@@ -697,7 +721,7 @@ function buildWeatherScene(cfg) {
   </div>`;
 }
 
-function buildIrrigationCard(unit, idx) {
+function buildIrrigationCard(unit, idx, weather) {
   const cfg        = unit.Config || {};
   const connected  = cfg.ConnectionStatus === true;
   const hasAlarm   = (cfg.DeviceAlarm || 0) > 0;
@@ -712,11 +736,23 @@ function buildIrrigationCard(unit, idx) {
   card.dataset.index = idx;
 
   const bg = document.createElement('div'); bg.className = 'card-irr-bg';
-  bg.innerHTML = buildWeatherScene(cfg) + `<div class="card-irr-name"><span>${unitName}</span></div>`;
+  bg.innerHTML = buildWeatherScene(cfg, weather) + `<div class="card-irr-name"><span>${unitName}</span></div>`;
   card.appendChild(bg);
 
   // overlay
   const ov = document.createElement('div'); ov.className = 'card-ov'; card.appendChild(ov);
+
+  // weather badge (top-right)
+  if (weather && weather.temp != null) {
+    const wb = document.createElement('div'); wb.className = 'irr-weather-badge';
+    wb.innerHTML = `
+      <div class="irr-weather-row">
+        <img class="irr-weather-icon" src="https://openweathermap.org/img/wn/${weather.icon}@2x.png" alt="">
+        <div class="irr-weather-temp">${weather.temp}°</div>
+      </div>
+      <div class="irr-weather-desc">${weather.description}</div>`;
+    card.appendChild(wb);
+  }
 
   // tag
   const tg = document.createElement('div'); tg.className = 'card-tag tag-irrigation';
@@ -822,6 +858,19 @@ async function init() {
     const galconUnit = data.serialNumber ? await fetchGalconUnit(data.serialNumber) : null;
     console.log('[Galcon] galconUnit resolved:', galconUnit ? (galconUnit.UnitName || JSON.stringify(galconUnit).substring(0, 150)) : 'null');
 
+    // Fetch weather using unit coordinates if available
+    let weather = null;
+    if (galconUnit) {
+      const cfg = galconUnit.Config || {};
+      const lat = cfg.Map_Latitude  || 32.0853;
+      const lon = cfg.Map_Longitude || 34.7818;
+      console.log('[Weather] Fetching for lat:', lat, 'lon:', lon);
+      weather = await fetch(`/.netlify/functions/weather?lat=${lat}&lon=${lon}`)
+        .then(r => r.json())
+        .catch(e => { console.warn('[Weather] fetch failed:', e.message); return null; });
+      console.log('[Weather] result:', weather ? `${weather.temp}°C id:${weather.weatherId} ${weather.description}` : 'null');
+    }
+
     if (!recs.length && !galconUnit) { showEmpty(); return; }
 
     feed().innerHTML = '';
@@ -830,7 +879,7 @@ async function init() {
     // Insert irrigation card at position 1 (after first feed card, or first if feed is empty)
     if (galconUnit) {
       const cards = feed().querySelectorAll('.card');
-      const irrCard = buildIrrigationCard(galconUnit, cards.length > 0 ? 1 : 0);
+      const irrCard = buildIrrigationCard(galconUnit, cards.length > 0 ? 1 : 0, weather);
       feed().insertBefore(irrCard, cards[1] || null);
       feed().querySelectorAll('.card').forEach((c,i) => c.dataset.index = i);
     }
