@@ -281,22 +281,78 @@
 
   /* ── IRRIGATION CARD ── */
   .tag-irrigation { background:rgba(20,70,130,0.5); color:#8ec5f5; border-color:rgba(100,180,255,0.25); }
-  .card-irr-bg {
-    position:absolute; inset:0;
-    background:linear-gradient(155deg,#0d2035 0%,#0f2a1e 50%,#071810 100%);
-    display:flex; align-items:center; justify-content:center;
-  }
-  .card-irr-bg svg { opacity:0.1; }
+  .card-irr-bg { position:absolute; inset:0; overflow:hidden; }
   .card-irr-name {
-    position:absolute; inset:0;
+    position:absolute; inset:0; z-index:2;
     display:flex; align-items:center; justify-content:center;
     overflow:hidden; pointer-events:none;
   }
   .card-irr-name span {
     font-family:'Cormorant Garamond',serif; font-size:54px; font-weight:300;
-    color:rgba(255,255,255,0.04); letter-spacing:4px;
+    color:rgba(255,255,255,0.05); letter-spacing:4px;
     white-space:nowrap; text-align:center; padding:0 16px;
   }
+
+  /* ── WEATHER SCENES ── */
+  .irr-scene { position:absolute; inset:0; overflow:hidden; }
+
+  /* rain */
+  .irr-scene-rain { background:linear-gradient(to bottom, #060d1a 0%, #0b1928 55%, #0d1e2a 100%); }
+  .rain-drop {
+    position:absolute; top:-22px; width:1.5px;
+    background:linear-gradient(to bottom, transparent 0%, rgba(185,220,255,0.65) 50%, transparent 100%);
+    border-radius:1px; animation:irrRainFall linear infinite; will-change:transform;
+  }
+  @keyframes irrRainFall { from{transform:translateY(0)} to{transform:translateY(110vh)} }
+
+  /* sunny / irrigating */
+  .irr-scene-sunny { background:linear-gradient(170deg, #0d2035 0%, #1a3f60 28%, #2d7868 60%, #22481c 100%); }
+  .irr-sun-wrap {
+    position:absolute; top:20%; left:50%; transform:translateX(-50%);
+    width:160px; height:160px; display:flex; align-items:center; justify-content:center;
+  }
+  .irr-sun-glow {
+    position:absolute; inset:-35px; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,215,70,0.28) 0%, transparent 68%);
+    animation:irrSunGlow 3s ease-in-out infinite;
+  }
+  .irr-sun-rays { position:absolute; inset:0; animation:irrSunSpin 24s linear infinite; }
+  .irr-sun-core {
+    width:50px; height:50px; border-radius:50%; position:relative; z-index:1;
+    background:radial-gradient(circle, #fff8e0 0%, #ffe055 45%, #ffac20 100%);
+    box-shadow:0 0 28px 12px rgba(255,210,60,0.55), 0 0 60px 28px rgba(255,185,30,0.22);
+    animation:irrSunPulse 3s ease-in-out infinite;
+  }
+  .irr-sparkle {
+    position:absolute; border-radius:50%; background:rgba(255,245,150,0.85);
+    animation:irrSparkle ease-in-out infinite; will-change:opacity,transform;
+  }
+  @keyframes irrSunGlow  { 0%,100%{transform:scale(1);opacity:0.7} 50%{transform:scale(1.3);opacity:1} }
+  @keyframes irrSunSpin  { to{transform:rotate(360deg)} }
+  @keyframes irrSunPulse {
+    0%,100%{box-shadow:0 0 28px 12px rgba(255,210,60,0.55),0 0 60px 28px rgba(255,185,30,0.22)}
+    50%    {box-shadow:0 0 44px 20px rgba(255,225,70,0.70),0 0 90px 44px rgba(255,200,40,0.30)}
+  }
+  @keyframes irrSparkle  { 0%,100%{opacity:0;transform:scale(0)} 50%{opacity:1;transform:scale(1)} }
+
+  /* cloudy / default */
+  .irr-scene-cloudy { background:linear-gradient(170deg, #0c1e30 0%, #152e3e 38%, #142e28 68%, #0d1e12 100%); }
+  .irr-cloud { position:absolute; will-change:transform; animation:irrCloudDrift linear infinite; }
+  @keyframes irrCloudDrift { from{transform:translateX(-280px)} to{transform:translateX(calc(100vw + 280px))} }
+
+  /* storm / disconnected */
+  .irr-scene-storm { background:linear-gradient(to bottom, #020206 0%, #07070f 60%, #060609 100%); }
+  .irr-lightning-flash {
+    position:absolute; inset:0; pointer-events:none;
+    background:rgba(210,225,255,0.15); opacity:0;
+    animation:irrFlashBg 5.5s ease-in-out infinite;
+  }
+  .irr-bolt { position:absolute; opacity:0; animation:irrBoltShow 5.5s ease-in-out infinite; }
+  .irr-bolt-2 { animation-delay:0.12s !important; }
+  @keyframes irrFlashBg { 0%,79%,81%,83%,100%{opacity:0} 80%,82%{opacity:1} }
+  @keyframes irrBoltShow { 0%,79%,81%,83%,100%{opacity:0} 80%,82%{opacity:0.92} }
+
+  /* stats & dots */
   .card-irr-stats {
     display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;
     opacity:0; transform:translateY(8px); transition:all 0.5s ease 0.35s;
@@ -537,11 +593,106 @@ function formatNextIrrigation(nextArr) {
   return `${dayLabel} ${h}:${m}`;
 }
 
-function getIrrGradient(cfg) {
-  if (cfg.ConnectionStatus === false) return 'linear-gradient(135deg, #2a0a0a, #5a1a1a, #9f2d2d33)';
-  if (cfg.RainChance === true)        return 'linear-gradient(135deg, #0d1b2a, #1a3a5c, #2d6a9f44)';
-  if (cfg.ControllerState === 2)      return 'linear-gradient(135deg, #0a2a1a, #1a5a3a, #2d9f6a33)';
-  return 'linear-gradient(155deg, #0d2035 0%, #0f2a1e 50%, #071810 100%)';
+function buildWeatherScene(cfg) {
+  // ── Storm / disconnected ──
+  if (cfg.ConnectionStatus === false) {
+    return `<div class="irr-scene irr-scene-storm">
+      <svg style="position:absolute;top:-18px;left:-30px;opacity:0.92" width="270" height="108" viewBox="0 0 270 108">
+        <ellipse cx="135" cy="88" rx="135" ry="52" fill="#0b0b18"/>
+        <ellipse cx="72"  cy="70" rx="78"  ry="46" fill="#0d0d1c"/>
+        <ellipse cx="202" cy="76" rx="84"  ry="40" fill="#090914"/>
+      </svg>
+      <svg style="position:absolute;top:12px;right:-15px;opacity:0.72" width="210" height="88" viewBox="0 0 210 88">
+        <ellipse cx="105" cy="70" rx="105" ry="40" fill="#08080e"/>
+        <ellipse cx="152" cy="54" rx="68"  ry="36" fill="#0a0a14"/>
+      </svg>
+      <svg class="irr-bolt" style="left:40%;top:16%" width="40" height="115" viewBox="0 0 40 115">
+        <polyline points="28,0 10,52 23,52 5,115" stroke="rgba(255,255,255,0.38)" stroke-width="7" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+        <polyline points="28,0 10,52 23,52 5,115" stroke="rgba(220,235,255,0.95)" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
+      <svg class="irr-bolt irr-bolt-2" style="left:62%;top:28%;transform:scale(0.6) rotate(4deg)" width="40" height="115" viewBox="0 0 40 115">
+        <polyline points="28,0 10,52 23,52 5,115" stroke="rgba(255,255,255,0.3)" stroke-width="7" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+        <polyline points="28,0 10,52 23,52 5,115" stroke="rgba(220,235,255,0.88)" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
+      <div class="irr-lightning-flash"></div>
+    </div>`;
+  }
+
+  // ── Rain ──
+  if (cfg.RainChance === true) {
+    const drops = Array.from({length: 42}, (_, i) => {
+      const left  = ((i * 97 + 7) % 100).toFixed(1);
+      const dur   = (0.46 + (i % 7) * 0.055).toFixed(2);
+      const delay = ((i * 0.078) % 2.5).toFixed(2);
+      const h     = 12 + (i % 7) * 3;
+      const op    = (0.25 + (i % 5) * 0.10).toFixed(2);
+      return `<div class="rain-drop" style="left:${left}%;height:${h}px;animation-duration:${dur}s;animation-delay:-${delay}s;opacity:${op}"></div>`;
+    }).join('');
+    return `<div class="irr-scene irr-scene-rain">
+      <svg style="position:absolute;top:-14px;left:-28px;opacity:0.68" width="235" height="88" viewBox="0 0 235 88">
+        <ellipse cx="118" cy="70" rx="118" ry="40" fill="#18283e"/>
+        <ellipse cx="64"  cy="54" rx="68"  ry="37" fill="#1a2e46"/>
+        <ellipse cx="177" cy="60" rx="74"  ry="34" fill="#152238"/>
+      </svg>
+      <svg style="position:absolute;top:18px;right:-22px;opacity:0.50" width="190" height="72" viewBox="0 0 190 72">
+        <ellipse cx="95"  cy="58" rx="95"  ry="32" fill="#15223a"/>
+        <ellipse cx="142" cy="44" rx="58"  ry="28" fill="#182840"/>
+      </svg>
+      <div style="position:absolute;top:0;left:-12%;right:-12%;bottom:0;transform:rotate(-8deg)">${drops}</div>
+    </div>`;
+  }
+
+  // ── Sunny / irrigating ──
+  if (cfg.ControllerState === 2) {
+    const rays = Array.from({length: 10}, (_, i) => {
+      const a   = i * 36, r = Math.PI / 180;
+      const x1  = (80 + 34 * Math.cos(a * r)).toFixed(1), y1 = (80 + 34 * Math.sin(a * r)).toFixed(1);
+      const x2  = (80 + 74 * Math.cos(a * r)).toFixed(1), y2 = (80 + 74 * Math.sin(a * r)).toFixed(1);
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(255,215,55,0.42)" stroke-width="2.5" stroke-linecap="round"/>`;
+    }).join('');
+    const sparkles = Array.from({length: 11}, (_, i) => {
+      const top  = (12 + (i * 47 + 9) % 64).toFixed(0);
+      const left = (6  + (i * 73 + 19) % 84).toFixed(0);
+      const dur  = (1.3 + (i % 4) * 0.55).toFixed(1);
+      const del  = (i * 0.37).toFixed(1);
+      const sz   = 2.5 + (i % 3);
+      return `<div class="irr-sparkle" style="top:${top}%;left:${left}%;width:${sz}px;height:${sz}px;animation-duration:${dur}s;animation-delay:-${del}s"></div>`;
+    }).join('');
+    return `<div class="irr-scene irr-scene-sunny">
+      <div class="irr-sun-wrap">
+        <div class="irr-sun-glow"></div>
+        <svg class="irr-sun-rays" viewBox="0 0 160 160" width="160" height="160">${rays}</svg>
+        <div class="irr-sun-core"></div>
+      </div>
+      ${sparkles}
+    </div>`;
+  }
+
+  // ── Default: partly cloudy ──
+  const c = (w,h,e1,e2,e3) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <ellipse cx="${Math.round(w*.28)}" cy="${Math.round(h*.75)}" rx="${Math.round(w*.27)}" ry="${Math.round(h*.46)}" fill="${e1}"/>
+    <ellipse cx="${Math.round(w*.50)}" cy="${Math.round(h*.58)}" rx="${Math.round(w*.37)}" ry="${Math.round(h*.56)}" fill="${e2}"/>
+    <ellipse cx="${Math.round(w*.72)}" cy="${Math.round(h*.67)}" rx="${Math.round(w*.28)}" ry="${Math.round(h*.43)}" fill="${e3}"/>
+    <rect x="0" y="${Math.round(h*.68)}" width="${w}" height="${Math.round(h*.32)}" fill="${e2}"/>
+  </svg>`;
+  return `<div class="irr-scene irr-scene-cloudy">
+    <div class="irr-cloud" style="top:5%;animation-duration:32s;animation-delay:-4s">
+      ${c(215,78,'rgba(108,153,178,0.18)','rgba(118,163,188,0.20)','rgba(103,148,173,0.17)')}
+    </div>
+    <div class="irr-cloud" style="top:20%;opacity:0.62;animation-duration:46s;animation-delay:-20s">
+      ${c(170,62,'rgba(93,138,163,0.15)','rgba(103,148,173,0.17)','rgba(88,133,158,0.14)')}
+    </div>
+    <div class="irr-cloud" style="top:40%;opacity:0.40;animation-duration:60s;animation-delay:-36s">
+      ${c(130,48,'rgba(78,123,148,0.12)','rgba(88,133,158,0.13)','rgba(73,118,143,0.11)')}
+    </div>
+    <svg style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.07" width="175" height="175" viewBox="0 0 200 200" fill="none">
+      <path d="M100 20C100 20 160 70 160 120C160 155 133 175 100 175C67 175 40 155 40 120C40 70 100 20 100 20Z" stroke="#7ab8f5" stroke-width="1.5"/>
+      <path d="M100 175L100 55" stroke="#7ab8f5" stroke-width="0.8" stroke-dasharray="4 5"/>
+      <path d="M100 140Q122 118 142 98" stroke="#7ab8f5" stroke-width="0.8"/>
+      <path d="M100 155Q78 133 58 113" stroke="#7ab8f5" stroke-width="0.8"/>
+      <circle cx="100" cy="175" r="3" fill="#7ab8f5"/>
+    </svg>
+  </div>`;
 }
 
 function buildIrrigationCard(unit, idx) {
@@ -559,16 +710,7 @@ function buildIrrigationCard(unit, idx) {
   card.dataset.index = idx;
 
   const bg = document.createElement('div'); bg.className = 'card-irr-bg';
-  bg.style.background = getIrrGradient(cfg);
-  bg.innerHTML = `
-    <svg width="220" height="220" viewBox="0 0 200 200" fill="none">
-      <path d="M100 20C100 20 160 70 160 120C160 155 133 175 100 175C67 175 40 155 40 120C40 70 100 20 100 20Z" stroke="#7ab8f5" stroke-width="1.5"/>
-      <path d="M100 175L100 55" stroke="#7ab8f5" stroke-width="0.8" stroke-dasharray="4 5"/>
-      <path d="M100 140Q122 118 142 98" stroke="#7ab8f5" stroke-width="0.8"/>
-      <path d="M100 155Q78 133 58 113" stroke="#7ab8f5" stroke-width="0.8"/>
-      <circle cx="100" cy="175" r="3" fill="#7ab8f5"/>
-    </svg>
-    <div class="card-irr-name"><span>${unitName}</span></div>`;
+  bg.innerHTML = buildWeatherScene(cfg) + `<div class="card-irr-name"><span>${unitName}</span></div>`;
   card.appendChild(bg);
 
   // overlay
