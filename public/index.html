@@ -281,7 +281,7 @@
 
   /* ── IRRIGATION CARD ── */
   .tag-irrigation { background:rgba(20,70,130,0.5); color:#8ec5f5; border-color:rgba(100,180,255,0.25); }
-  .card-irr-bg { position:absolute; top:0; left:0; right:0; bottom:0; width:100%; height:100%; overflow:hidden; }
+  .card-irr-bg { position:absolute; inset:0; width:100%; height:100%; overflow:hidden; }
   .card-irr-name {
     position:absolute; top:0; left:0; width:100%; height:100%; z-index:2;
     display:flex; align-items:center; justify-content:center;
@@ -294,7 +294,7 @@
   }
 
   /* ── WEATHER SCENES ── */
-  .irr-scene { position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; }
+  .irr-scene { position:absolute; inset:0; width:100%; height:100%; }
 
   /* rain */
   .irr-scene-rain { background:linear-gradient(to bottom, #060d1a 0%, #0b1928 55%, #0d1e2a 100%); }
