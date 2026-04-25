@@ -19,13 +19,9 @@ exports.handler = async (event) => {
       'Client Name', 'Profile Photo', 'Gardens', 'Package',
       'Contract URL', 'Email Address', 'Phone Number', 'Serial Number'
     ];
-    const params = new URLSearchParams({
-      filterByFormula: `{Client Name}="${client}"`,
-      maxRecords: 1,
-    });
-    fields.forEach(f => params.append('fields[]', f));
-
-    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Clients?${params}`;
+    const formula = encodeURIComponent(`{Client Name}="${client}"`);
+    const fieldParams = fields.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Clients?filterByFormula=${formula}&maxRecords=1&${fieldParams}`;
     console.log('Client lookup URL:', url);
 
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } });
