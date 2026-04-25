@@ -21,7 +21,7 @@ exports.handler = async (event) => {
     if (client) {
       const cFormula = encodeURIComponent(`FIND(LOWER("${client}"), LOWER({Client Name})) > 0`);
       const cResp = await fetch(
-        `https://api.airtable.com/v0/${BASE_ID}/${CLIENTS_TABLE}?filterByFormula=${cFormula}&maxRecords=1&fields[]=Client%20Name&fields[]=Profile%20Photo&fields[]=Serial%20Number&fields[]=Gardens&fields[]=Package&fields[]=Contract%20URL&fields[]=Email%20Address&fields[]=Phone%20Number`,
+        `https://api.airtable.com/v0/${BASE_ID}/${CLIENTS_TABLE}?filterByFormula=${cFormula}&maxRecords=1`,
         { headers: { Authorization: `Bearer ${API_KEY}` } }
       );
       if (cResp.ok) {
