@@ -1011,12 +1011,8 @@ function switchTab(idx) {
 }
 
 // ── profile ──
-function waUrl(phone) {
-  if (!phone) return null;
-  const d = phone.replace(/\D/g, '');
-  if (d.startsWith('972')) return `https://wa.me/${d}`;
-  if (d.startsWith('0'))   return `https://wa.me/972${d.slice(1)}`;
-  return `https://wa.me/972${d}`;
+function waUrl() {
+  return 'https://wa.me/972504339338';
 }
 
 async function loadProfile() {
@@ -1031,9 +1027,8 @@ async function loadProfile() {
       name:        data.clientName,
       photo:       data.profilePhoto,
       gardens:     data.gardens,
-      package:     data.package,
+      pkg:         data.package,
       contractUrl: data.contractUrl,
-      phone:       data.phone,
     });
   } catch (e) {
     console.error('[Profile]', e.message);
@@ -1063,12 +1058,11 @@ function renderProfile(d) {
       📄 צפה בחוזה שלי
     </a>` : '';
 
-  const wa = waUrl(d.phone);
-  const waHtml = wa ? `
-    <a class="prof-btn prof-btn-wa" href="${wa}"
+  const waHtml = `
+    <a class="prof-btn prof-btn-wa" href="${waUrl()}"
        target="_blank" rel="noopener" style="animation-delay:0.38s">
       💬 שתף איתנו בוואטסאפ
-    </a>` : '';
+    </a>`;
 
   document.getElementById('view-profile').innerHTML = `
     <div class="prof-header">
@@ -1077,7 +1071,7 @@ function renderProfile(d) {
     <div class="prof-hero" style="animation-delay:0.08s">
       <div class="prof-photo-wrap">${photoHtml}</div>
       <div class="prof-name">${d.name}</div>
-      ${d.package ? `<div class="prof-badge">${d.package}</div>` : ''}
+      ${d.pkg ? `<div class="prof-badge">${d.pkg}</div>` : ''}
     </div>
     <div class="prof-body">
       ${gardensHtml}
