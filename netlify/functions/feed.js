@@ -37,11 +37,11 @@ exports.handler = async (event) => {
           const gardenIds = rec.fields['Gardens'];
           if (Array.isArray(gardenIds) && gardenIds.length > 0 && gardenIds[0].startsWith('rec')) {
             const idFormula = `OR(${gardenIds.map(id => `RECORD_ID()="${id}"`).join(',')})`;
-            const gUrl = `https://api.airtable.com/v0/${BASE_ID}/Gardens?filterByFormula=${encodeURIComponent(idFormula)}&fields[]=Name`;
+            const gUrl = `https://api.airtable.com/v0/${BASE_ID}/Gardens?filterByFormula=${encodeURIComponent(idFormula)}&fields[]=${encodeURIComponent('שם הגינה')}`;
             const gResp = await fetch(gUrl, { headers: { Authorization: `Bearer ${API_KEY}` } });
             if (gResp.ok) {
               const gData = await gResp.json();
-              gardens = (gData.records || []).map(r => r.fields['Name'] || '').filter(Boolean).join(', ');
+              gardens = (gData.records || []).map(r => r.fields['שם הגינה'] || '').filter(Boolean).join(', ');
             }
           } else {
             gardens = gardenIds || '';
