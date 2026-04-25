@@ -40,9 +40,7 @@ exports.handler = async (event) => {
             const gIds = gardenRaw.filter(id => typeof id === 'string' && id.startsWith('rec'));
             if (gIds.length > 0) {
               const gResp = await fetch(
-                `https://api.airtable.com/v0/${BASE_ID}/Gardens?` +
-                gIds.map(id => `filterByFormula=RECORD_ID()="${id}"`).join('&') +
-                `&fields[]=${encodeURIComponent('שם הגינה')}&fields[]=${encodeURIComponent('לקוח')}`,
+                `https://api.airtable.com/v0/${BASE_ID}/Gardens?filterByFormula=${encodeURIComponent('OR(' + gIds.map(id => `RECORD_ID()="${id}"`).join(',') + ')')}&fields[]=${encodeURIComponent('שם הגינה')}`,
                 { headers: { Authorization: `Bearer ${API_KEY}` } }
               );
               const gData = await gResp.json();
