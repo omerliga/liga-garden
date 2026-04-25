@@ -82,7 +82,7 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { ...headers, 'Cache-Control': 'public, max-age=30' },
+      headers: { ...headers, 'Cache-Control': 'no-cache' },
       body: JSON.stringify({
         records:      data.records || [],
         profilePhoto,
