@@ -19,7 +19,7 @@ exports.handler = async (event) => {
       'Client Name', 'Profile Photo', 'Gardens', 'Package',
       'Contract URL', 'Email Address', 'Phone Number', 'Serial Number'
     ];
-    const formula = encodeURIComponent(`{Client Name}="${client}"`);
+    const formula = encodeURIComponent(`FIND(LOWER("${client}"), LOWER({Client Name})) > 0`);
     const fieldParams = fields.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
     const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Clients?filterByFormula=${formula}&maxRecords=1&${fieldParams}`;
     console.log('Client lookup URL:', url);
