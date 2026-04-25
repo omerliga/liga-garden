@@ -1024,10 +1024,17 @@ async function loadProfile() {
   const vp = document.getElementById('view-profile');
   vp.innerHTML = `<div class="prof-state"><div class="spinner"></div></div>`;
   try {
-    const resp = await fetch(`/.netlify/functions/client?client=${encodeURIComponent(CLIENT)}`);
+    const resp = await fetch(`/.netlify/functions/feed?client=${encodeURIComponent(CLIENT)}`);
     const data = await resp.json();
     if (!resp.ok || data.error) throw new Error(data.error || 'not found');
-    renderProfile(data);
+    renderProfile({
+      name:        data.clientName,
+      photo:       data.profilePhoto,
+      gardens:     data.gardens,
+      package:     data.package,
+      contractUrl: data.contractUrl,
+      phone:       data.phone,
+    });
   } catch (e) {
     console.error('[Profile]', e.message);
     renderProfileError();

@@ -17,6 +17,7 @@ exports.handler = async (event) => {
     let profilePhoto = null;
     let clientName   = client;
     let serialNumber = null;
+    let gardens = '', pkg = '', contractUrl = '', email = '', phone = '';
     if (client) {
       const cParams = new URLSearchParams({
         filterByFormula: `FIND(LOWER("${client}"), LOWER({Client Name})) > 0`,
@@ -75,6 +76,11 @@ exports.handler = async (event) => {
         profilePhoto,
         clientName,
         serialNumber,
+        gardens,
+        package:      pkg,
+        contractUrl,
+        email,
+        phone,
       }),
     };
   } catch (e) {
