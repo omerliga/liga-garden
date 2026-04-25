@@ -27,6 +27,7 @@ exports.handler = async (event) => {
       if (cResp.ok) {
         const cData = await cResp.json();
         const rec   = cData.records?.[0];
+        if (rec) console.log('RAW FIELDS:', JSON.stringify(rec.fields));
         if (rec) {
           console.log('All client fields:', JSON.stringify(rec.fields));
           clientName   = rec.fields['Client Name']    || client;
