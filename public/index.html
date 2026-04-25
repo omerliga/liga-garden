@@ -1054,7 +1054,7 @@ function renderProfile(d) {
   const gardensHtml = d.gardens ? `
     <div class="prof-card" style="animation-delay:0.22s">
       <div class="prof-card-title">הגינה שלי 🌿</div>
-      <div class="prof-card-text">${d.gardens.replace(/\n/g, '<br>')}</div>
+      <div class="prof-card-text">${(Array.isArray(d.gardens) ? d.gardens.join(', ') : d.gardens || '').replace(/\n/g, '<br>')}</div>
     </div>` : '';
 
   const contractHtml = d.contractUrl ? `
