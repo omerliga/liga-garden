@@ -50,6 +50,7 @@ exports.handler = async (event) => {
           contractUrl  = rec.fields['Contract URL']   || '';
           email        = rec.fields['Email Address']  || '';
           phone        = rec.fields['Phone Number']   || '';
+      
           console.log('Client serial number:', serialNumber);
         }
       }
