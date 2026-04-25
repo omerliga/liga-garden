@@ -30,9 +30,14 @@ exports.handler = async (event) => {
         const cData = await cResp.json();
         const rec   = cData.records?.[0];
         if (rec) {
-          clientName   = rec.fields['Client Name'] || client;
+          clientName   = rec.fields['Client Name']    || client;
           profilePhoto = rec.fields['Profile Photo']?.[0]?.url || null;
-          serialNumber = rec.fields['Serial Number'] || null;
+          serialNumber = rec.fields['Serial Number']  || null;
+          gardens      = rec.fields['Gardens']        || '';
+          pkg          = rec.fields['Package']        || '';
+          contractUrl  = rec.fields['Contract URL']   || '';
+          email        = rec.fields['Email Address']  || '';
+          phone        = rec.fields['Phone Number']   || '';
           console.log('Client serial number:', serialNumber);
         }
       }
