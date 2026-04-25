@@ -31,23 +31,24 @@ exports.handler = async (event) => {
         const cData = await cResp.json();
         const rec   = cData.records?.[0];
         if (rec) {
-          console.log('Client fields:', JSON.stringify(Object.keys(rec.fields)));
+          console.log('All client fields:', JSON.stringify(rec.fields));
           clientName   = rec.fields['Client Name']    || client;
           profilePhoto = rec.fields['Profile Photo']?.[0]?.url || null;
           serialNumber = rec.fields['Serial Number']  || null;
-          const gardenIds = rec.fields['Gardens'];
-          if (Array.isArray(gardenIds) && gardenIds.length > 0 && gardenIds[0].startsWith('rec')) {
-            const idFormula = `OR(${gardenIds.map(id => `RECORD_ID()="${id}"`).join(',')})`;
-            const gUrl = `https://api.airtable.com/v0/${BASE_ID}/Gardens?filterByFormula=${encodeURIComponent(idFormula)}&fields[]=${encodeURIComponent('שם הגינה')}`;
-            const gResp = await fetch(gUrl, { headers: { Authorization: `Bearer ${API_KEY}` } });
-            const gData = await gResp.json();
-            console.log('Gardens fetch status:', gResp.status);
-            console.log('Gardens data:', JSON.stringify(gData));
-            if (gResp.ok) {
+          const gardenRaw = rec.fields['Gardens'];
+          if (Array.isArray(gardenRaw) && gardenRaw.length > 0) {
+            const gIds = gardenRaw.filter(id => typeof id === 'string' && id.startsWith('rec'));
+            if (gIds.length > 0) {
+              const gResp = await fetch(
+                `https://api.airtable.com/v0/${BASE_ID}/Gardens?` +
+                gIds.map(id => `filterByFormula=RECORD_ID()="${id}"`).join('&') +
+                `&fields[]=${encodeURIComponent('שם הגינה')}&fields[]=${encodeURIComponent('לקוח')}`,
+                { headers: { Authorization: `Bearer ${API_KEY}` } }
+              );
+              const gData = await gResp.json();
+              console.log('Gardens response:', JSON.stringify(gData));
               gardens = (gData.records || []).map(r => r.fields['שם הגינה'] || '').filter(Boolean).join(', ');
             }
-          } else {
-            gardens = Array.isArray(gardenIds) ? gardenIds.join(', ') : (gardenIds || '');
           }
           pkg          = rec.fields['Package']        || '';
           contractUrl  = rec.fields['Contract URL']   || '';
