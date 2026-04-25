@@ -10,24 +10,27 @@ exports.handler = async (event) => {
   };
 
   try {
-    const { id } = event.queryStringParameters || {};
-    if (!id) {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing id' }) };
+    const { client } = event.queryStringParameters || {};
+    if (!client) {
+      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing client' }) };
     }
 
-    const formula = encodeURIComponent(`FIND(LOWER("${id}"), LOWER({Client Name})) > 0`);
     const fields = [
       'Client Name', 'Profile Photo', 'Gardens', 'Package',
       'Contract URL', 'Email Address', 'Phone Number', 'Serial Number'
     ];
-    const fieldParams = fields.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
+    const params = new URLSearchParams({
+      filterByFormula: `{Client Name}="${client}"`,
+      maxRecords: 1,
+    });
+    fields.forEach(f => params.append('fields[]', f));
 
-    const resp = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Clients?filterByFormula=${formula}&maxRecords=1&${fieldParams}`,
-      { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-    );
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Clients?${params}`;
+    console.log('Client lookup URL:', url);
+
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } });
     const data = await resp.json();
-    console.log('Client lookup for:', id, '→', data.records?.length, 'records');
+    console.log('Client lookup for:', client, '→', data.records?.length ?? 0, 'records');
 
     if (!data.records || !data.records.length) {
       return { statusCode: 404, headers, body: JSON.stringify({ error: 'Client not found' }) };
