@@ -19,12 +19,9 @@ exports.handler = async (event) => {
     let serialNumber = null;
     let gardens = '', pkg = '', contractUrl = '', email = '', phone = '';
     if (client) {
-      const cParams = new URLSearchParams({
-        filterByFormula: `FIND(LOWER("${client}"), LOWER({Client Name})) > 0`,
-        maxRecords: 1,
-      });
+      const cFormula = encodeURIComponent(`FIND(LOWER("${client}"), LOWER({Client Name})) > 0`);
       const cResp = await fetch(
-        `https://api.airtable.com/v0/${BASE_ID}/${CLIENTS_TABLE}?${cParams}`,
+        `https://api.airtable.com/v0/${BASE_ID}/${CLIENTS_TABLE}?filterByFormula=${cFormula}&maxRecords=1`,
         { headers: { Authorization: `Bearer ${API_KEY}` } }
       );
       if (cResp.ok) {
