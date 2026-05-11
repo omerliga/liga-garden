@@ -24,7 +24,7 @@ Everything in this folder is served directly to the browser by Netlify's CDN.
 | `public/irrigation.html` | Frontend page | Standalone irrigation detail page — reached via `/irrigation/PROJECT/UNIT` deep links | Core |
 | `public/manifest.json` | PWA config | Enables "Add to Home Screen" on iOS/Android — defines app name, icon, and display mode | Active |
 | `public/logo_transparent.png` | Asset | LIGA Garden brand logo — used in splash screen, top bar, and profile footer | Active |
-| `public/_redirects` | Routing | Duplicate of the redirect rules in `netlify.toml` — redundant but harmless | Redundant |
+| `public/_redirects` | Routing | Deleted — was a duplicate of the redirect rules in `netlify.toml` | Deleted |
 
 ---
 
@@ -38,7 +38,7 @@ Each file is an independent serverless function deployed by Netlify. Accessible 
 | `netlify/functions/galcon.js` | Backend | Galcon irrigation integration — authenticates, looks up units by serial number, returns live unit data | Core |
 | `netlify/functions/weather.js` | Backend | Weather proxy — fetches current weather from OpenWeatherMap using GPS coordinates | Active |
 | `netlify/functions/invoice.js` | Backend | Invoice automation — parses a plain-text message and creates a draft invoice in Morning.co | Active |
-| `netlify/functions/‏‏תיקיה חדשה/` | Leftover | Empty folder — Windows "New Folder" artifact, no purpose | Delete |
+| `netlify/functions/‏‏תיקיה חדשה/` | Leftover | Deleted — was an empty Windows "New Folder" artifact | Deleted |
 
 ---
 

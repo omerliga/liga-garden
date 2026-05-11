@@ -5,6 +5,16 @@ Format: Did / Approved / Blocked / Next / Docs updated.
 
 ---
 
+## 2026-05-11 (session 2)
+
+- Did: Phase 2 cleanup — deleted `netlify/functions/תיקיה חדשה/` (empty artifact) and `public/_redirects` (duplicate of `netlify.toml` rules). Pushed prior documentation commit `a90445c` to `origin/main`. Decision made: do not restore `invoice.js` — CRLF issue no longer present.
+- Approved: Phase 2 deletions. Push of `a90445c`. No `invoice.js` restore.
+- Blocked: Obsidian vault creation (8 folders + 12 notes) — awaiting separate session.
+- Next: Commit Phase 2 deletions + doc updates. Then Obsidian vault when ready.
+- Docs updated: `docs/PROJECT_MAP.md`, `docs/ROADMAP.md`, `docs/SESSION_LOG.md`
+
+---
+
 ## 2026-05-11
 
 - Did: Planned and implemented strategic content split between GitHub docs and Obsidian vault. Created `docs/STRATEGIC_CONTEXT.md`. Updated `CLAUDE.md` (strategic context read rule), `docs/ROADMAP.md` (strategic product tracks section), `docs/SESSION_LOG.md`.

@@ -25,10 +25,10 @@ Known issues, planned improvements, and ideas on hold.
 
 ---
 
-## Phase 2 cleanup (safe, no risk)
+## Phase 2 cleanup (complete)
 
-- [ ] Delete `netlify/functions/‏‏תיקיה חדשה/`
-- [ ] Delete `public/_redirects`
+- [x] Delete `netlify/functions/‏‏תיקיה חדשה/`
+- [x] Delete `public/_redirects`
 
 ---
 
