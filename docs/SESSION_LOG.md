@@ -5,6 +5,16 @@ Format: Did / Approved / Blocked / Next / Docs updated.
 
 ---
 
+## 2026-05-13
+
+- Did: Built and strengthened Obsidian vault (`Desktop/קלוד/LigaGarden`). Created 9 folders, 22 notes. Added Hebrew YAML tags: `שורש` (root/MOC), `צומת-מרכזית` (category hubs), `מקור` (source archive), `מודל-עסקי`, `תפעול`, `טכנולוגיה`, `פרויקט`, `מסמך`. Source notes (Gemini, AI agriculture) marked as archive with `## פירוק לתחומי ידע` sections pointing to active category notes. Documents/templates folder structure added (`08_מסמכים ותבניות/`). GitHub code was not touched.
+- Approved: All Obsidian vault creation and graph-structure work above. GitHub SESSION_LOG update (this entry).
+- Blocked: Agreement template in `08_מסמכים ותבניות/הסכמי עבודה/` — existing agreement does not yet match new strategic vision, pending rewrite.
+- Next: Fill remaining thin Obsidian notes with content (`01_אסטרטגיה/מעבר מתפעול לניהול.md` is the priority). Then draft agreement template.
+- Docs updated: `docs/SESSION_LOG.md`
+
+---
+
 ## 2026-05-11 (session 2)
 
 - Did: Phase 2 cleanup — deleted `netlify/functions/תיקיה חדשה/` (empty artifact) and `public/_redirects` (duplicate of `netlify.toml` rules). Pushed prior documentation commit `a90445c` to `origin/main`. Decision made: do not restore `invoice.js` — CRLF issue no longer present.
