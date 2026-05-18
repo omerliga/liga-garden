@@ -535,6 +535,20 @@
   .mgmt-ic svg { width:13px; height:13px; stroke:var(--gold); fill:none; stroke-width:1.8; }
   .mgmt-lbl { font-size:13px; font-weight:300; color:rgba(255,255,255,0.52); flex:1; }
   .mgmt-lock { width:12px; height:12px; stroke:rgba(255,255,255,0.17); fill:none; stroke-width:2; flex-shrink:0; }
+
+  /* ── SOUND TOGGLE ── */
+  .snd-btn {
+    position:absolute; right:16px; bottom:112px; z-index:10;
+    width:42px; height:42px; border-radius:50%;
+    background:rgba(0,0,0,0.45); backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,0.2);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; padding:0;
+    opacity:0; transform:translateX(8px);
+    transition:all 0.4s ease 0.3s;
+  }
+  .card.in-view .snd-btn { opacity:1; transform:translateX(0); }
+  .snd-btn svg { width:18px; height:18px; stroke:white; fill:none; stroke-width:2; }
 </style>
 </head>
 <body>
@@ -611,6 +625,19 @@ function tagConfig(type) {
   return {cls:'tag-update', label:'עדכון שוטף'};
 }
 
+function isVideo(a) {
+  if (!a) return false;
+  if (a.type && a.type.startsWith('video/')) return true;
+  const ext = (a.filename || '').split('.').pop().toLowerCase();
+  return ['mp4','mov','webm','avi'].includes(ext);
+}
+
+function setSndIcon(btn, muted) {
+  if (!btn) return;
+  btn.querySelector('.snd-off-ic').style.display = muted ? '' : 'none';
+  btn.querySelector('.snd-on-ic').style.display  = muted ? 'none' : '';
+}
+
 // ── fetch via Netlify Function ──
 async function fetchFeed() {
   const params = new URLSearchParams();
@@ -624,7 +651,8 @@ async function fetchFeed() {
 // ── build card ──
 function buildCard(rec, idx) {
   const f    = rec.fields || {};
-  const imgs = (f.Image || []).map(a => a.url);
+  const attachments = f.Image || [];
+  const imgs = attachments.map(a => a.url);
   const tc   = tagConfig(f.Type);
   const isBefore = (f.Type||'').toLowerCase().includes('before');
 
@@ -643,6 +671,40 @@ function buildCard(rec, idx) {
       col.appendChild(im); col.appendChild(lb); g.appendChild(col);
     });
     card.appendChild(g);
+  } else if (attachments.length && isVideo(attachments[0])) {
+    const att = attachments[0];
+    const vid = document.createElement('video');
+    vid.className = 'card-img';
+    vid.src = att.url;
+    vid.muted = true;
+    vid.loop = true;
+    vid.setAttribute('playsinline', '');
+    vid.setAttribute('preload', 'metadata');
+    if (att.thumbnails && att.thumbnails.large) vid.poster = att.thumbnails.large.url;
+    card.appendChild(vid);
+    const btn = document.createElement('button');
+    btn.className = 'snd-btn';
+    btn.setAttribute('aria-label', 'toggle sound');
+    btn.innerHTML = `<svg class="snd-off-ic" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg><svg class="snd-on-ic" style="display:none" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const v = card.querySelector('video');
+      if (!v) return;
+      if (v.muted) {
+        document.querySelectorAll('.card video').forEach(ov => {
+          ov.muted = true;
+          setSndIcon(ov.closest('.card').querySelector('.snd-btn'), true);
+        });
+        v.muted = false;
+        v.volume = 1;
+        v.play().catch(() => {});
+        setSndIcon(btn, false);
+      } else {
+        v.muted = true;
+        setSndIcon(btn, true);
+      }
+    });
+    card.appendChild(btn);
   } else if (imgs.length) {
     const im = document.createElement('img');
     im.className = 'card-img'; im.src = imgs[0]; im.loading = 'lazy'; im.alt = f.Title||'';
@@ -705,6 +767,16 @@ function observe() {
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {
       e.target.classList.toggle('in-view', e.isIntersecting);
+      const vid = e.target.querySelector('video');
+      if (vid) {
+        if (e.isIntersecting) {
+          vid.play().catch(() => {});
+        } else {
+          vid.pause();
+          vid.muted = true;
+          setSndIcon(e.target.querySelector('.snd-btn'), true);
+        }
+      }
       if (e.isIntersecting) {
         const idx = +e.target.dataset.index;
         setDot(idx);
