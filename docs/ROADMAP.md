@@ -32,6 +32,15 @@ Known issues, planned improvements, and ideas on hold.
 
 ---
 
+## Phase 3 — App features (complete)
+
+- [x] Feed video support — video cards auto-play on scroll, pause when off-screen, include a sound toggle
+- [x] Gallery tab — browse all card images in a full-screen gallery view
+- [x] Profile management center preview — profile tab shows client package, gardens, contract link, and contact button
+- [x] Splash logo split with RGBA transparent assets
+
+---
+
 ## Phase 3 improvements (low risk)
 
 - [ ] Extract invoice price list from `invoice.js` into a separate JSON config file
@@ -51,14 +60,24 @@ These are technically concrete directions that follow from the strategic context
 
 ---
 
+## Phase 4 — Product quality and growth
+
+- [ ] Google Analytics audit — verify GA4 events fire correctly; add meaningful engagement tracking (tab switches, card views, irrigation card interactions)
+- [ ] Token-based access — required before financial or private data is shown in the app (invoice history, contract details)
+- [ ] Galcon card readability polish — improve layout, typography, and state labels on the irrigation card
+- [ ] Splash logo visual alignment polish — logo split is functional; pixel-level alignment deferred as UI polish
+
+---
+
 ## Potential future features
 
 - [ ] Push notifications when new feed updates are posted
 - [ ] Admin view for uploading new posts directly from the app
-- [ ] Multiple photos per card with swipe gallery
 - [ ] Manual irrigation trigger from the app (requires Galcon write API)
-- [ ] Invoice history view for clients
-- [ ] Client onboarding flow (new client URL generation)
+- [ ] Invoice history view for clients (requires token-based access first)
+- [ ] Client onboarding / Gardening 2.0 package — welcome flow for new and existing clients, upgrade upsell, onboarding screen
+- [ ] Contractor scheduling system — limited app access for field teams to log visits, photos, and task completion
+- [ ] LigaGarden community / garden social network — clients share garden photos, seasonal inspiration, community feed
 
 ---
 

@@ -5,6 +5,36 @@ Format: Did / Approved / Blocked / Next / Docs updated.
 
 ---
 
+## 2026-05-21
+
+- Did: Documentation-only session. Updated SESSION_LOG, ROADMAP, STRATEGIC_CONTEXT, and PROJECT_MAP to reflect all work completed since 2026-05-13. Added new strategic direction (גינון 2.0, onboarding package, contractor scheduling, community network). No code changed.
+- Approved: Documentation updates only.
+- Blocked: None.
+- Next: Google Analytics audit, token-based access, Galcon readability polish.
+- Docs updated: docs/SESSION_LOG.md, docs/ROADMAP.md, docs/STRATEGIC_CONTEXT.md, docs/PROJECT_MAP.md
+
+---
+
+## 2026-05-18
+
+- Did: Added video support to feed cards with scroll-aware play/pause and a sound toggle. Implemented gallery tab for browsing all card images. Implemented splash logo split. Fixed logo assets to use correct RGBA transparent PNGs. Adjusted splash logo leaves scale.
+- Approved: All features above shipped and pushed to origin/main.
+- Blocked: Splash logo alignment is acceptable for MVP but not pixel-perfect — deferred as later UI polish.
+- Next: Google Analytics audit, token-based access, Galcon readability polish, documentation sync.
+- Docs updated: None (documented retroactively in 2026-05-21 session).
+
+---
+
+## 2026-05-13 (session 2)
+
+- Did: Added profile management center preview to the app (commit 5db9302). Pushed to origin/main.
+- Approved: Profile management center preview shipped and pushed.
+- Blocked: None.
+- Next: Video support in feed cards, gallery tab.
+- Docs updated: None (documented retroactively in 2026-05-21 session).
+
+---
+
 ## 2026-05-13
 
 - Did: Built and strengthened Obsidian vault (`Desktop/קלוד/LigaGarden`). Created 9 folders, 22 notes. Added Hebrew YAML tags: `שורש` (root/MOC), `צומת-מרכזית` (category hubs), `מקור` (source archive), `מודל-עסקי`, `תפעול`, `טכנולוגיה`, `פרויקט`, `מסמך`. Source notes (Gemini, AI agriculture) marked as archive with `## פירוק לתחומי ידע` sections pointing to active category notes. Documents/templates folder structure added (`08_מסמכים ותבניות/`). GitHub code was not touched.

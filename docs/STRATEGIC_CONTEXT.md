@@ -52,6 +52,25 @@ These tracks are relevant when making product, feature, or architecture decision
 
 ---
 
+## New strategic initiative — גינון 2.0
+
+LigaGarden is launching a new client acquisition and upgrade track built around the idea of
+**starting the working relationship right** ("התחלת עבודה משותפת — לרגל ההשקה").
+
+Key components:
+
+| Component | What it means for the product |
+|---|---|
+| **Garden makeover / onboarding package** | A structured first engagement — assessment, design, and transformation — that replaces the "just start maintaining" model |
+| **Welcome / onboarding screen** | New and existing clients see an onboarding experience inside the app that explains their package, what to expect, and how to follow their garden's progress |
+| **Upgrade packages** | The app surfaces upgrade options to existing retainer clients (e.g., seasonal projects, green wall, irrigation expansion) |
+| **Contractor scheduling system** | Future phase: field teams access a limited view to log visits, attach photos, and confirm task completion — feeds directly into the client feed |
+| **LigaGarden community / garden social network** | Long-term vision: clients share seasonal garden photos, follow design inspiration, and connect with the broader LigaGarden network — garden as a social object |
+
+**Product implication:** The app needs to evolve from a post-visit update log into an onboarding and relationship tool. The first screen a new client sees should feel like a welcome, not a feed.
+
+---
+
 ## What belongs in Obsidian, not here
 
 - Full business model and pricing logic

@@ -20,10 +20,11 @@ Everything in this folder is served directly to the browser by Netlify's CDN.
 
 | File | Type | Role | Status |
 |---|---|---|---|
-| `public/index.html` | Frontend app | The entire client-facing app — HTML structure, all CSS, all JavaScript (1,088 lines) | Core |
+| `public/index.html` | Frontend app | The entire client-facing app — HTML structure, all CSS, all JavaScript. Includes: feed cards, video support (scroll-aware play/pause, sound toggle), gallery tab, profile management center, splash logo split, and Galcon/weather card rendering | Core |
 | `public/irrigation.html` | Frontend page | Standalone irrigation detail page — reached via `/irrigation/PROJECT/UNIT` deep links | Core |
 | `public/manifest.json` | PWA config | Enables "Add to Home Screen" on iOS/Android — defines app name, icon, and display mode | Active |
-| `public/logo_transparent.png` | Asset | LIGA Garden brand logo — used in splash screen, top bar, and profile footer | Active |
+| `public/logo_leaves.png` | Asset | Rotating leaf/decorative frame asset — used in the animated splash logo split | Active |
+| `public/logo_text.png` | Asset | Static logo text asset — used in splash screen and profile footer | Active |
 | `public/_redirects` | Routing | Deleted — was a duplicate of the redirect rules in `netlify.toml` | Deleted |
 
 ---
