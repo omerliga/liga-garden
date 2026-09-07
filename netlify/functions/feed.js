@@ -19,7 +19,7 @@ exports.handler = async (event) => {
     let serialNumber = null;
     let gardens = '', pkg = '', contractUrl = '', email = '', phone = '';
     if (client) {
-      const cFormula = encodeURIComponent(`FIND(LOWER("${client}"), LOWER({Client Name})) > 0`);
+      const cFormula = encodeURIComponent(`FIND(LOWER("${escapeFormulaValue(client)}"), LOWER({Client Name})) > 0`);
       const cResp = await fetch(
         `https://api.airtable.com/v0/${BASE_ID}/${CLIENTS_TABLE}?filterByFormula=${cFormula}&maxRecords=1`,
         { headers: { Authorization: `Bearer ${API_KEY}` } }
@@ -59,7 +59,7 @@ exports.handler = async (event) => {
     // 2. שליפת רשומות הפיד
     let formula = `{Active}=TRUE()`;
     if (client) {
-      formula = `AND({Active}=TRUE(),FIND("${client}",ARRAYJOIN({Client},",")))`;
+      formula = `AND({Active}=TRUE(),FIND("${escapeFormulaValue(client)}",ARRAYJOIN({Client},",")))`;
     }
 
     const params = new URLSearchParams({
@@ -99,3 +99,9 @@ exports.handler = async (event) => {
     return { statusCode: 500, headers, body: JSON.stringify({ error: e.message }) };
   }
 };
+
+// Prevents a crafted ?client= value from breaking out of the quoted string literal
+// inside an Airtable filterByFormula expression.
+function escapeFormulaValue(value) {
+  return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}

@@ -1,0 +1,8 @@
+# Local Netlify folder
+.netlify
+
+# Node dependencies (Playwright, used only for local browser-check.js validation)
+node_modules
+
+# Local Playwright validation screenshots
+scripts/validation-output

@@ -1,0 +1,12 @@
+{
+  "name": "liga-garden",
+  "private": true,
+  "version": "1.0.0",
+  "description": "LIGA Garden client app — Netlify static site + functions. No build step; devDependencies are for local browser-based preview validation only.",
+  "scripts": {
+    "validate": "node scripts/browser-check.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}
